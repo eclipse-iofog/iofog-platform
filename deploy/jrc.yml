@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jrcEdgeSolution
+  labels:
+    app: jrcEdgeSolution
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jrcEdgeSolution
+  template:
+    metadata:
+      labels:
+        app: jrcEdgeSolution
+    spec:
+      containers:
+        - name: imageService
+          image: edgeworx/jrc-1-image-service:x86_rel
+        - name: userService
+          image: edgeworx/jrc-1-user-service:x86_rel
+        - name: deviceService
+          image: edgeworx/jrc-1-device-service:x86_rel
+        - name: commandService
+          image: edgeworx/jrc-1-command-service:x86_rel
+        - name: livestreamService
+          image: edgeworx/jrc-1-livestream:x86_rel
+        - name: videoService
+          image: edgeworx/jrc-1-video-service:x86_rel
+        - name: detectionService
+          image: edgeworx/jrc-1-detection-service:x86_rel
