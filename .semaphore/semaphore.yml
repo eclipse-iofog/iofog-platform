@@ -1,0 +1,65 @@
+version: v1.0
+name: First pipeline example
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+
+blocks:
+  - name: "Deploy iofog-platform"
+    task:
+      jobs:
+        - name: Deploy
+          commands:
+            - checkout
+            - make install-kubectl          # Kubernetes CLI
+            - make install-terraform        # Terraform CLI
+            - make install-gcloud           # GCP CLI
+            - make install-ansible          # Install ansible
+            - make deploy-iofog-gcp         # Deploy Kubernetes cluster on GKE and deploy ioFog services on cluster
+            - make test                     # Test ioFog services
+            - make rm-gcp                   # Teardown cluster
+            - TAG=rel make push-imgs        # Push release packages
+  
+#  - name: "Deployment"
+#    task:
+#      jobs:
+#        - name: Deploy
+#          commands:
+#            - checkout
+#            - ls -1
+#            - ./run-smoke-tests.sh
+#
+#  - name: "Unit tests"
+#    task:
+#      jobs:
+#      - name: RSpec
+#        commands:
+#          - checkout
+#          - echo "make rspec"
+#
+#      - name: Lint code
+#        commands:
+#          - checkout
+#          - echo "make lint"
+#
+#      - name: Check security
+#        commands:
+#          - checkout
+#          - echo "make security"
+#
+#  - name: "Integration tests"
+#    task:
+#      jobs:
+#      - name: Cucumber
+#        commands:
+#          - checkout
+#          - echo "make cucumber"
+#
+#  - name: "Push Image"
+#    task:
+#      jobs:
+#      - name: Push
+#        commands:
+#          - checkout
+#          - echo "make docker.push"
