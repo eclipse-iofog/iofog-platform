@@ -18,14 +18,15 @@ before_install:
   - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
-
-script:
-  - set -e                        # Fail fast
-  - make install-kubectl          # Kubernetes CLI
-  - make install-terraform        # Terraform CLI
-  - make install-gcloud           # GCP CLI
-  - make install-ansible          # Ansible CLI
-  - make deploy-iofog-gcp         # Deploy Kubernetes cluster on GKE and deploy ioFog services on cluster
-  - make test                     # Test ioFog services
-  - make rm-gcp                   # Teardown cluster
-  - TAG=rel make push-imgs        # Push release packages
+ 
+jobs:
+  include:
+    - stage: install-deploy-test
+      script:
+        - make install             # Install deps
+        - make deploy              # Deploy infrastructure and services
+        - make test                # Test ioFog services
+      after_success:
+        - TAG=rel make push-imgs   # Push release packages
+      after_script:
+        - make rm-gcp              # Teardown GCP clusters

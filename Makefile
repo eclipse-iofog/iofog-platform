@@ -10,9 +10,20 @@ COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 K8S_VERSION ?= 1.13.4
 MINIKUBE_VERSION ?= 0.35.0
-SVCS = agent connector controller kubelet operator scheduler
 
 # Install targets
+.PHONY: install
+install: install-helm install-kubectl install-jq install-ansible install-terraform install-gcloud
+
+.PHONY: install-helm
+install-helm:
+	curl -Lo helm.tar.gz https://storage.googleapis.com/kubernetes-helm/helm-v2.13.1-$(OS)-amd64.tar.gz
+	tar -xf helm.tar.gz
+	rm helm.tar.gz
+	sudo mv $(OS)-amd64/helm /usr/local/bin
+	chmod +x /usr/local/bin/helm
+	rm -r $(OS)-amd64
+
 .PHONY: install-kubectl
 install-kubectl:
 	curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v$(K8S_VERSION)/bin/$(OS)/amd64/kubectl
@@ -22,6 +33,14 @@ install-kubectl:
 .PHONY: install-kind
 install-kind:
 	go get sigs.k8s.io/kind
+
+.PHONY: install-jq
+install-jq:
+ifeq ($(OS), darwin)
+	brew install jq
+else
+	sudo apt install jq
+endif
 
 .PHONY: install-ansible
 install-ansible:
@@ -51,16 +70,16 @@ install-gcloud:
 	google-cloud-sdk/install.sh -q
 
 # Deploy targets
-.PHONY: gen-creds-gcp
-gen-creds-gcp:
-	printenv GCP_SVC_ACC > creds/svcacc.json
-	printenv IOF_PUB_KLT > creds/id_klt.pub
-	printenv IOF_PUB_SRG > creds/id_srg.pub
-	printenv IOF_PUB_RSH > creds/id_rsh.pub
-	printenv IOF_PUB_TOD > creds/id_tod.pub
+.PHONY: deploy
+deploy: gen-creds deploy-gcp deploy-k8s-svcs deploy-agent
+
+.PHONY: gen-creds
+gen-creds:
+	ssh-keygen -t ecdsa -N "" -f creds/id_ecdsa -q
 
 .PHONY: deploy-gcp
-deploy-gcp: gen-creds-gcp
+deploy-gcp: 
+	printenv GCP_SVC_ACC > creds/svcacc.json
 	gcloud auth activate-service-account --key-file=creds/svcacc.json
 	gcloud config set project edgeworx
 	terraform init deploy/gcp
@@ -72,13 +91,14 @@ deploy-kind: install-kind
 	$(eval export KUBECONFIG=$(shell kind get kubeconfig-path))
 	kubectl cluster-info
 
-#.PHONY: deploy-minikube
-#deploy-minikube: install-minikube
-#	sudo minikube start --kubernetes-version=v$(K8S_VERSION)
-#	sudo minikube update-context
+.PHONY: deploy-minikube
+deploy-minikube: install-minikube
+	sudo minikube start --kubernetes-version=v$(K8S_VERSION)
+	sudo minikube update-context
 
-.PHONY: get-kube-creds
-get-kube-creds:
+.PHONY: init-gke
+init-gke:
+	script/wait-for-gke.bash
 	$(eval export CLUSTER_NAME=$(shell gcloud container clusters list | awk 'NR==2 {print $$1}'))
 	gcloud container clusters get-credentials $(CLUSTER_NAME) --zone us-central1-a
 	kubectl cluster-info
@@ -91,20 +111,34 @@ deploy-iofog-%: deploy-% get-kube-creds
 		kubectl create -f deploy/$$SVC.yml ; \
 	done
 
-.PHONY: append-agent-host
-append-agent-host:
-	terraform output ip >> ./deploy/ansible/hosts
-	#echo "127.0.0.1" >> ./deploy/ansible/hosts
+.PHONY: init-helm
+init-helm:
+	helm init --wait
+	kubectl create serviceaccount --namespace kube-system tiller
+	kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+	kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+	kubectl rollout status --watch deployment/tiller-deploy -n kube-system
+
+.PHONY: deploy-k8s-svcs
+deploy-k8s-svcs: init-gke init-helm
+	$(eval PORT=$(shell kubectl cluster-info | head -n 1 | cut -d ":" -f 3 | sed 's/[^0-9]*//g' | rev | cut -c 2- | rev))
+	kubectl create namespace iofog
+	helm install deploy/helm/iofog
 
 .PHONY: deploy-agent
-deploy-agent: install-ansible append-agent-host
-	ANSIBLE_CONFIG=./deploy/ansible ansible --version
-	ANSIBLE_CONFIG=./deploy/ansible ansible-playbook -i deploy/ansible/hosts deploy/ansible/iofog-agent.yml
-
+deploy-agent:
+	$(eval AGENT_IP=$(shell terraform output ip))
+ifeq ($(OS), darwin)
+	sed -i '' -e '/\[iofog-agent\]/ {' -e 'n; s/.*/$(AGENT_IP)/' -e '}' deploy/ansible/hosts
+else
+	sed -i '/\[iofog-agent\]/!b;n;c$(AGENT_IP)' deploy/ansible/hosts
+endif
+	ANSIBLE_CONFIG=deploy/ansible ansible-playbook -i deploy/ansible/hosts deploy/ansible/iofog-agent.yml
 
 # Teardown targets
 .PHONY: rm-gcp
-rm-gcp: gen-creds-gcp
+rm-gcp:
+	printenv GCP_SVC_ACC > creds/svcacc.json
 	terraform destroy -auto-approve deploy/gcp 
 
 .PHONY: rm-kind
@@ -134,6 +168,11 @@ push-imgs:
 #	for IMG in $(IOFOG_IMGS) ; do \
 #		docker push $(IMAGE):$(TAG) ; \
 #	done
+
+.PHONY: clean
+clean:
+	rm -f creds/svcacc.json || true
+	rm -f creds/id_*
 
 .PHONY: list help
 .DEFAULT_GOAL := help
