@@ -84,6 +84,7 @@
       shell: sudo service iofog-agent start
 
     # Agent takes a few secs to start completely
+        # Agent takes a few secs to start completely
     - name: Wait for Agent to complete starting
       copy:
         src: scripts/wait-for-agent.sh
@@ -92,7 +93,7 @@
       shell: ./wait-for-agent.sh
 
     - name: Configure Agent frequency
-      shell: iofog-agent config -cf 10
+      shell: iofog-agent config -cf 10 -sf 10
       register: freq
 
     - debug: var=freq.stdout
