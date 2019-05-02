@@ -31,7 +31,7 @@ steps:
     python cli.py test iofog
   displayName: 'Test ioFog'
 
-- script: |
-    python cli.py down gcp
-  displayName: 'Tear GCP down'
-  condition: always()
+#- script: |
+#    python cli.py down gcp
+#  displayName: 'Tear GCP down'
+#  condition: always()
