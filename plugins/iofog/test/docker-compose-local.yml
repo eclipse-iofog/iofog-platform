@@ -1,7 +1,7 @@
 version: "3"
 services:
     test-runner:
-        image: iofog/test-runner-develop:latest
+        image: iofog/test-runner-azure:latest
         container_name: test-runner
         environment:
             - LOCAL=1
