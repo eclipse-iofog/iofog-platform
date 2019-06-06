@@ -1,5 +1,5 @@
 resource "google_container_cluster" "gke" {
-  name = "${var.user}-${random_id.instance_id.hex}"
+  name = "u-${var.user}-${random_id.instance_id.hex}"
   network = "default"
   location = "australia-southeast1"
   initial_node_count = 1
