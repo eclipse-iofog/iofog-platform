@@ -13,12 +13,12 @@ def str2bool(v):
   return v.lower() in ("yes", "true")
 
 def help():
-    print 'Weather app on ioFog Kubernetes'
+    print('Weather app on ioFog Kubernetes')
 
 def up(**kwargs):
     if 'help' in kwargs:
-        print 'Default arguments:'
-        print '--bootstrap=false'
+        print('Default arguments:')
+        print('--bootstrap=false')
         return
 
     # Default args
@@ -33,7 +33,7 @@ def up(**kwargs):
 
     if args['bootstrap']:
         cmd('kubectl --help')
-        print 'Nothing to bootstrap for Weather App'
+        print('Nothing to bootstrap for Weather App')
     
     cmd('kubectl apply -f plugins/weather/weather.yml')
 

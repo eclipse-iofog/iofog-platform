@@ -13,26 +13,26 @@ def str2bool(v):
   return v.lower() in ("yes", "true")
 
 def help():
-    print ''
-    print 'Kubernetes cluster and edge nodes on GCP'
-    print 'packet-'
-    print 'Usage:       python cli.py up gcp'
-    print '             python cli.py down gcp'
-    print '             python cli.py describe gcp'
-    print '             python cli.py test gcp'
-    print ''
-    print 'Use --help on the up/down commands for more information'
+    print('')
+    print('Kubernetes cluster and edge nodes on GCP')
+    print('packet-')
+    print('Usage:       python cli.py up gcp')
+    print('             python cli.py down gcp')
+    print('             python cli.py describe gcp')
+    print('             python cli.py test gcp')
+    print('')
+    print('Use --help on the up/down commands for more information')
 
 def up(**kwargs):
     if 'help' in kwargs:
-        print ''
-        print 'Spin up infrastructure on GCP'
-        print ''
-        print 'Arguments:       --bootstrap     Default: false      Install dependancies'
-        print '                 --gen-creds     Default: true       Generate new pub/priv key pair (overwrites previous)'
-        print '                 --cluster       Default: true       Spin up Kubernetes cluster'
-        print '                 --edge          Default: true       Spin up edge nodes'
-        print ''
+        print('')
+        print('Spin up infrastructure on GCP')
+        print('')
+        print('Arguments:       --bootstrap     Default: false      Install dependancies')
+        print('                 --gen-creds     Default: true       Generate new pub/priv key pair (overwrites previous)')
+        print('                 --cluster       Default: true       Spin up Kubernetes cluster')
+        print('                 --edge          Default: true       Spin up edge nodes')
+        print('')
         return
 
     # Default args
@@ -69,12 +69,12 @@ def up(**kwargs):
 
 def down(**kwargs):
     if 'help' in kwargs:
-        print ''
-        print 'Spin down infrastructure on GCP'
-        print ''
-        print 'Arguments:       --cluster       Default: true       Spin down Kubernetes cluster'
-        print '                 --edge          Default: true       Spin down edge nodes'
-        print ''
+        print('')
+        print('Spin down infrastructure on GCP')
+        print('')
+        print('Arguments:       --cluster       Default: true       Spin down Kubernetes cluster')
+        print('                 --edge          Default: true       Spin down edge nodes')
+        print('')
         return
 
     # Default args

@@ -16,7 +16,7 @@ class cli(object):
   def list(self):
     """List all available plugins"""
     for dir in subdirs('plugins'):
-      print dir.replace('plugins/', '')
+      print(dir.replace('plugins/', ''))
 
   def help(self, plugin):
     """Print help information for plugin"""

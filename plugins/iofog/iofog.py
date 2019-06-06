@@ -22,14 +22,14 @@ def str2bool(v):
   return v.lower() in ("yes", "true")
 
 def help():
-    print 'ioFog Kubernetes and Agent nodes'
+    print('ioFog Kubernetes and Agent nodes')
 
 def up(**kwargs):
     if 'help' in kwargs:
-        print 'Default arguments:'
-        print '--bootstrap=false'
-        print '--bootstrap-agents=true'
-        print '--local=false'
+        print('Default arguments:')
+        print('--bootstrap=false')
+        print('--bootstrap-agents=true')
+        print('--local=false')
         return
 
     # Default args
