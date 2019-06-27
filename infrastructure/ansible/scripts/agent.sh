@@ -171,6 +171,7 @@ add_initial_apt_repos_if_not_exist() {
 do_install_java() {
 	echo "# Installing java 8..."
 	echo
+	java8_version=0
 	if command_exists java; then
         java8_version="$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | grep 1.8 | cut -d'_' -f 2)"
 	fi
