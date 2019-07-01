@@ -111,6 +111,7 @@ steps:
     -var 'agent_version=$(agent_version)' -auto-approve
   workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop'
   displayName: 'Terraform Apply'
+  timeoutInMinutes: 30
 
 - task: DownloadSecureFile@1
   displayName: 'Download secure file - healthcare microservice app config'
