@@ -96,7 +96,6 @@ steps:
   workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop'
   displayName: 'Terraform Destroy if cluster exists and if it is a scheduled build'
   condition: and(always(), eq(variables['Build.Reason'], 'Schedule'))
-
 - script: |
     echo 'set package cloud token as env var needed for agent installation from snapshots'
     export PACKAGE_CLOUD_TOKEN=$(agentPackageCloudToken)
@@ -123,7 +122,7 @@ steps:
 #   displayName: 'Deploy microservice'
 
 - script: |
-    ls 
+    ls
     docker pull iofog/test-runner-develop:latest
     docker run iofog/test-runner-develop:latest -name testrunner -v iofogctl_inventory.yaml:~/conf/environment.yaml
     docker cp testrunner:/home/ .
@@ -137,3 +136,9 @@ steps:
     testResultsFiles: '**/TEST-*.xml'
     searchFolder: '$(System.DefaultWorkingDirectory)'
   displayName: 'Publish Test Results'
+
+- script: |
+    terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
+  workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop'
+  displayName: 'Terraform Destroy For clean up after failure'
+  condition: always()
