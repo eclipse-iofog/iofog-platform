@@ -42,11 +42,6 @@ steps:
     inputs:
       secureFile: 'develop-msv-config.yaml'
 
-  - task: DockerInstaller@0
-    displayName: 'Install Docker'
-    inputs:
-      dockerVersion: '18.09.1-ce'
-
   - script: |
       echo "deb https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
       curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
@@ -54,7 +49,7 @@ steps:
 
       gcloud --quiet auth activate-service-account --key-file=$(Agent.TempDirectory)/azure-gcp.json
       gcloud --quiet config set project focal-freedom-236620
-      
+
       # set env var GOOGLE_APPLICATION_CREDENTIALS for terraform to pick up for GCP authentication
       echo "##vso[task.setvariable variable=GOOGLE_APPLICATION_CREDENTIALS]$(Agent.TempDirectory)/azure-gcp.json"
     displayName: 'Install and init gcloud'
@@ -64,6 +59,12 @@ steps:
       sudo apt-get install iofogctl=0.0.0-b1630
       iofogctl version
     displayName: 'Install iofogctl'
+
+  - script: |
+      sudo add-apt-repository ppa:rmescandon/yq
+      sudo apt update
+      sudo apt install yq -y
+    displayName: 'Install yq'
 
   - script: |
       cp $(Agent.TempDirectory)/packet.token $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/packet.token
@@ -101,14 +102,24 @@ steps:
     workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
     env:
       PACKAGE_CLOUD_TOKEN: $(agentPackageCloudToken)
+    continueOnError: 'true'
+
+  - task: Docker@2
+    inputs:
+      containerRegistry: 'Edgeworx GCP'
+      command: 'login'
 
   - script: |
       cat iofogctl_inventory.yaml
-    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop'
-    displayName: 'Log iofog reources'
-
-  - script: |
-      docker run gcr.io/focal-freedom-236620/test-runner:lkrcal -n test-runner -v iofogctl_inventory.yaml:/conf/environment.yaml
+      CONTROLLER_IP=$(sed -n 's/.*kubecontrollerip: "\([0-9.]*\)"/\1/p' iofogctl_inventory.yaml)
+      AGENT_USER=$(yq r iofogctl_inventory.yaml 'agents[0].user')
+      AGENT_HOST=$(yq r iofogctl_inventory.yaml 'agents[0].host')
+      AGENT_PORT=$(yq r iofogctl_inventory.yaml 'agents[0].port')
+      docker run --name test-runner \
+          -v "$(Agent.TempDirectory)/azure_ssh_key":/root/.ssh/id_rsa \
+          -e CONTROLLER="${CONTROLLER_IP}:51121" \
+          -e AGENTS="${AGENT_USER}@${AGENT_HOST}:${AGENT_PORT}" \
+          gcr.io/focal-freedom-236620/test-runner:latest
     workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop'
     displayName: 'run tests'
 
@@ -119,9 +130,3 @@ steps:
       testResultsFiles: '**/TEST-*.xml'
       searchFolder: '$(System.DefaultWorkingDirectory)'
     displayName: 'Publish Test Results'
-
-  - script: |
-      terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
-    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop'
-    displayName: 'Terraform Destroy For clean up after failure'
-    condition: always()
