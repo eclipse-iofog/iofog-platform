@@ -1,44 +1,22 @@
 # ioFog Platform
 
-ioFog Platform provides a means by which to orchestrate and test ioFog deployments on various infrastructure.
+ioFog Platform provides a means by which to spin up and deploy an Eclipse ioFog stack on GKE and Packet.
 
-## iofog CLI
+# Requirements
 
-Automation of ioFog Platform is handled through the ioFog CLI. The CLI consumes a number of plugins for the deployment infrastructure and services.
+* Gcloud SDK
+* Terraform (v0.11.x)
+* Ansible
+* gcloud
+* Kubectl
+* Iofogctl
 
-![img not found](https://raw.githubusercontent.com/eclipse-iofog/platform/develop/cli.png)
+You can run `./bootstrap.sh` in order to download thoses dependencies.
 
-To create a plugin, you must implement a Python module in the plugins folder.
-
-plugins/gcp is an example of an infrastructure deployment plugin.
-
-plugins/iofog is an example of a platform deployment plugin.
-
-plugins/weather is an example of a service deployment plugin.
-
-Each plugin must provide a README.md as to its required inputs and expected outputs. Plugins have arbitrary inputs and outputs in the form of various configuration files. Chaining plugins together through configuration files allows us to decouple invocations of different plugins. You can therefore think of each plugin as a batch job where configuration files are their inputs and outputs.
-
-The following is an example of how you can bootstrap, deploy, and test an entire infrastructure, platform and service deployment:
+You will also require the following environment variables
+```sh
+export PACKAGE_CLOUD_TOKEN=<package_cloud_token> # If you need to download private packages from packagecloud
+export PACKET_AUTH_TOKEN=<packet_auth_token> # If you want to deploy agents on Packet
+export GOOGLE_APPLICATION_CREDENTIALS=<path-to-json>
 ```
-# Infrastructure
-python cli.py up gcp --bootstrap=true
-python cli.py test gcp
-
-# Platform
-python cli.py up iofog --bootstrap=true
-python cli.py test iofog
-
-# Service
-python cli.py up weather --bootstrap=true
-python cli.py test weather
-
-# Check status / info
-python cli.py describe weather
-python cli.py describe iofog
-python cli.py describe gcp
-
-# Clean up
-python cli.py down weather
-python cli.py down iofog
-python cli.py down gcp
-```
+You can edit the file `./scripts/credentials.sh` to provide your keys.
