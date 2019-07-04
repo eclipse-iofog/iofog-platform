@@ -311,7 +311,7 @@ do_install_iofog_dev() {
 	case "$lsb_dist" in
 		ubuntu)
 			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent-snapshots/script.deb.sh$token | $sh_c "bash"
-			$sh_c "apt-get install -y iofog-agent="$version""
+			$sh_c "apt-get install -y --allow-downgrades iofog-agent="$version""
 			command_status=$?
 			;;
 		fedora|centos)
@@ -321,10 +321,10 @@ do_install_iofog_dev() {
 			;;
 		debian|raspbian)
 			if [ "$lsb_dist" = "debian" ]; then
-				$sh_c "apt-get install -y -qq net-tools"
+				$sh_c "apt-get install -y --allow-downgrades -qq net-tools"
 			fi
 			curl -s https://packagecloud.io/install/repositories/iofog/iofog-agent-snapshots/script.deb.sh$token  | $sh_c "bash"
-			$sh_c "apt-get install -y iofog-agent="$version""
+			$sh_c "apt-get install -y --allow-downgrades iofog-agent="$version""
 			command_status=$?
 			;;
 	esac
