@@ -58,7 +58,7 @@ resource "null_resource" "iofogctl_deploy" {
     # use iofogctl to deploy iofoc ecn and configure agents
     # this will use the config template rendered by iofogctl module
     provisioner "local-exec" {
-        command = "gcloud --quiet beta container clusters get-credentials ${var.cluster_name} --region ${var.region} --project ${var.project_id}"
+        command = "export KUBECONFIG='~/.kube/config' && gcloud --quiet beta container clusters get-credentials ${var.cluster_name} --region ${var.region} --project ${var.project_id}"
     }
     provisioner "local-exec" {
         command = "export AGENT_VERSION=${var.agent_version} && iofogctl create namespace iofog || echo 'namespace esists!' && iofogctl deploy -f iofogctl_inventory.yaml -n iofog"
