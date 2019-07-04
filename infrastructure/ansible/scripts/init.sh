@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 CONTROLLER_HOST=$1
 AGENT_NAME=$2
+USER_EMAIL=$3
+USER_PASSWORD=$4
 
 token=""
 uuid=""
@@ -10,7 +12,7 @@ function login() {
     login=$(curl --request POST \
         --url $CONTROLLER_HOST/user/login \
         --header 'Content-Type: application/json' \
-        --data '{"email":"user@domain.com","password":"#Bugs4Fun"}')
+        --data "{\"email\":\"${USER_EMAIL}\",\"password\":\"${USER_PASSWORD}\"}")
     echo "$login"
     token=$(echo $login | jq -r .accessToken)
 }
