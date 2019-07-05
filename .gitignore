@@ -4,3 +4,4 @@
 *.retry
 iofogctl_inventory.yaml
 .idea/
+my_credentials.sh

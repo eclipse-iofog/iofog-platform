@@ -442,6 +442,12 @@ if ! [[ -x "$(command -v curl)" ]]; then
     exit 1
 fi
 
+
+if [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+    echoError "We do not currently support windows"
+    exit 1
+fi
+
 check_gcp
 gcp_success=$?
 check_tf
