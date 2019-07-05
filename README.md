@@ -23,6 +23,13 @@ You can edit the file `./my_credentials.sh` to provide your keys.
 
 ## Usage
 
+Run `./bootstrap.sh` to ensure all required dependencies are present and initialise terraform files.
+If you didn't have `gcloud` prior to running the bootstrap script, please run:
+```sh
+  source /usr/local/lib/google-cloud-sdk/completion.bash.inc
+  source /usr/local/lib/google-cloud-sdk/path.bash.inc
+```
+
 Edit the file `./my_vars.tfvars` according to the table below.
 
 To deploy your ioFog stack, run `./deploy.sh`
