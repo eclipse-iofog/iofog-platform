@@ -34,7 +34,9 @@ Account tokens:
 
 As a user, you can switch to the environments_gke directory to find a user folder holding a sample user environment inventory and environment configuration. This configuration does not have a terraform backend, will use local backend to store terraform state files.
 
-In the user directory, run:
+In the user directory, create a local copy of `vars.template.tfvars` called `vars.tfvars`, edit the values according the to table below.
+
+To deploy, run:
 
 1. *terraform init* to initialize your terraform directory
 2. *terraform plan -var-file="vars.tfvars"* pass in your vars file
