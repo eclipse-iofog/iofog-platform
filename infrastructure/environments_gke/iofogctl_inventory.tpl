@@ -1,6 +1,6 @@
 controllers:
 - name: "${cluster_name}"
-  kubeconfig: "~/.kube/config"
+  kubeconfig: "./kubeconfig"
   kubecontrollerip: "${controller_ip}"
   iofoguser:
     name: "${iofogUser_name}"
