@@ -8,7 +8,7 @@ trigger:
     exclude:
       - README.md
 
-  pr: none
+pr: none
 
 schedules:
 - cron: "0 1,14,19 * * *"
