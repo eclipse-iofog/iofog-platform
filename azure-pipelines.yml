@@ -9,8 +9,8 @@ trigger:
       - README.md
 
 schedules:
-- cron: "0 14 * * *"
-  displayName: Daily build
+- cron: "0 1,14,19 * * *"
+  displayName: Daily build 7am, 12pm and 6pm PST
   branches:
     include:
     - develop
