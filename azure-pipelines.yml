@@ -113,11 +113,6 @@ steps:
       PACKAGE_CLOUD_TOKEN: $(agentPackageCloudToken)
     continueOnError: 'true'
 
-  - task: Docker@2
-    inputs:
-      containerRegistry: 'Edgeworx GCP'
-      command: 'login'
-
   - script: |
       cat iofogctl_inventory.yaml
 
@@ -128,6 +123,7 @@ steps:
       CONTROLLER_EMAIL=$(yq r tests/inventory.yml 'controllers[0].iofoguser.email')
       CONTROLLER_PAASWORD=$(yq r tests/inventory.yml 'controllers[0].iofoguser.password')
 
+      gcloud auth configure-docker --quiet
       docker run --name test-runner \
           -v "$(Agent.TempDirectory)/azure_ssh_key":/root/.ssh/id_rsa \
           -e CONTROLLER="${CONTROLLER_IP}:51121" \
