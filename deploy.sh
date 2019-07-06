@@ -14,7 +14,7 @@
 . ./scripts/utils.sh
 
 # Export user credentials
-. ./my_credentials.sh
+. ./my_credentials.env
 
 prettyHeader "Deploying GKE ioFog stack..."
 

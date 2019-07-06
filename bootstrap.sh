@@ -461,7 +461,7 @@ iofogctl_success=$?
 
 echoInfo "Setting up Terraform files..."
 cp ./infrastructure/environments_gke/user/vars.template.tfvars ./my_vars.tfvars
-cp ./scripts/credentials.template.sh ./my_credentials.sh
+cp ./scripts/credentials.template.sh ./my_credentials.env
 
 success=0
 echo ""
