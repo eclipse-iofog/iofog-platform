@@ -25,6 +25,9 @@ variable "iofogUser_name"       {}
 variable "iofogUser_surname"    {}
 variable "iofogUser_email"      {}
 variable "iofogUser_password"   {}
+# iofogctl vars
+variable "iofogctl_namespace"   {}
+
 variable "agent_repo"           {
      default = ""
 }

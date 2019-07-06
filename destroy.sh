@@ -10,18 +10,18 @@
 #  * SPDX-License-Identifier: EPL-2.0
 #  *******************************************************************************
 #
+. ./scripts/utils.sh
+
 usage() {
     echo
-    echoInfo "Usage: `basename $0` [-h, --help] [namespace]"
-    echoInfo "$0 will destroy a GKE ioFog stack using terraform and try to disconnect it from iofogctl"
-    echoInfo "If provided the namespace will be used when using iofogctl"
+    echoInfo "Usage: `basename $0` [-h, --help]"
+    echoInfo "$0 will destroy a GKE ioFog stack using terraform."
     exit 0
 }
 if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
   usage
 fi
 
-. ./scripts/utils.sh
 
 # Export user credentials
 . ./my_credentials.env
@@ -50,15 +50,15 @@ cleanTerrformStateFiles() {
   rm -rf iofogctl_inventory.yaml
 }
 
-disconnectIofogctl() {
-  NAMESPACE=$1
-  NAMESPACE="${NAMESPACE:-default}"
-  {
-    iofogctl -n "$NAMESPACE" disconnect GKE_Controller
-  } || {
-    echoInfo "Could not disconnect from iofogctl"
-  }
-}
+# disconnectIofogctl() {
+#   NAMESPACE=$1
+#   NAMESPACE="${NAMESPACE:-default}"
+#   {
+#     iofogctl -n "$NAMESPACE" disconnect GKE_Controller
+#   } || {
+#     echoInfo "Could not disconnect from iofogctl"
+#   }
+# }
 
  
 {
@@ -72,6 +72,5 @@ disconnectIofogctl() {
   displayError
 }
 cleanTerrformStateFiles
-disconnectIofogctl
 echo ""
 echoSuccess "You are done!"

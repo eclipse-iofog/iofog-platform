@@ -10,8 +10,19 @@
 #  * SPDX-License-Identifier: EPL-2.0
 #  *******************************************************************************
 #
-
 . ./scripts/utils.sh
+
+usage() {
+    echo
+    echoInfo "Usage: `basename $0` [-h, --help] [--verify]"
+    echoInfo "$0 will install all dependencies and initialise user variables files"
+    echoInfo "--verify will only check for dependencies, and will NOT initialise user variable files"
+    exit 0
+}
+if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
+  usage
+fi
+
 
 OS=$(uname -s | tr A-Z a-z)
 GCLOUD_VERSION=253.0.0
@@ -26,6 +37,8 @@ TERRAFORM_INSTRUCTION_URL="https://cloud.google.com/sdk/docs/downloads-versioned
 KUBECTL_INSTRUCTION_URL="https://kubernetes.io/docs/tasks/tools/install-kubectl/"
 
 ANSIBLE_INSTRUCTION_URL="https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#intro-installation-guide"
+
+JQ_INSTRUCTION_URL="https://github.com/stedolan/jq/wiki/Installation"
 
 help_install_gcp_sdk() {
     echoError "We could not automatically install gcloud sdk"
@@ -427,6 +440,93 @@ check_ansible() {
     }
 }
 
+
+# JQ
+
+help_install_jq() {
+    echoError "We could not automatically install jq"
+    echoInfo "Please follow the installation instructions from here: ${JQ_INSTRUCTION_URL}"
+}
+
+install_jq_success() {
+    if [[ -z "$(command -v jq)" ]]; then
+        help_install_jq
+        return 1
+    else
+        echoSuccess "jq installed!"
+        jq --version
+        echo "" 
+        return 0
+    fi
+}
+
+install_jq() {
+    echoInfo "====> Installing jq..."
+    if [[ "$1" == "windows" ]]; then
+        help_install_jq
+        return 1
+    fi
+    {
+        sudo apt-get update -qy && sudo apt-get install -qy jq
+    } || {
+        sudo apt update -qy && sudo apt install -qy jq
+    } || {
+        sudo yum update -qy && sudo yum install -qy jq
+    } || {
+        brew install jq
+    } || {
+        echoError "Could not install jq"
+        help_install_jq
+        return 1
+    }
+        
+    if [[ -z "$(command -v jq)" ]]; then
+        help_install_jq
+        return 1
+    else
+        echoSuccess "jq installed!"
+        jq --version
+        echo "" 
+        return 0
+    fi
+}
+
+check_jq() {
+    {
+        if ! [[ -x "$(command -v jq)" ]]; then
+            if [[ "$OSTYPE" == "linux-gnu" ]]; then
+                install_jq "linux"
+            elif [[ "$OSTYPE" == "darwin"* ]]; then
+                # Mac OSX
+                install_jq "darwin"
+            elif [[ "$OSTYPE" == "cygwin" ]]; then
+                # POSIX compatibility layer and Linux environment emulation for Windows
+                install_jq "windows"
+            elif [[ "$OSTYPE" == "msys" ]]; then
+                # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
+                install_jq "windows"
+            elif [[ "$OSTYPE" == "win32" ]]; then
+                # I'm not sure this can happen.
+                install_jq "windows"
+            elif [[ "$OSTYPE" == "freebsd"* ]]; then
+                install_jq "linux"
+            else
+                help_install_jq
+                return 1
+            fi
+            return $?
+        else
+            echoSuccess "jq found in path!"
+            jq --version    
+            echo ""
+            return 0
+        fi
+    } || {
+        help_install_ansible
+        return 1
+    }
+}
+
 display_gcp_final_instructions() {
     prettyTitle "Next Steps"
     echo "Please run the following commands and add them in your shell profile file:"
@@ -458,10 +558,16 @@ check_kubectl
 kubectl_success=$?
 check_iofogctl
 iofogctl_success=$?
+check_jq
+jq_success=$?
 
-echoInfo "Setting up Terraform files..."
-cp ./infrastructure/environments_gke/user/vars.template.tfvars ./my_vars.tfvars
-cp ./scripts/credentials.template.sh ./my_credentials.env
+if [[ $1 == "--verify " ]]; then
+    echoInfo "Setting up Terraform files..."
+    cp ./infrastructure/environments_gke/user/vars.template.tfvars ./my_vars.tfvars
+    cp ./scripts/credentials.template.sh ./my_credentials.env
+else
+    echo ""
+fi
 
 success=0
 echo ""
@@ -493,6 +599,13 @@ if [[ $iofogctl_success -ne 0  ]]; then
     success=1
 else
     echoSuccess " ✔️  Iofogctl"
+fi
+if [[ $jq_success -ne 0  ]]; then
+    echoError " ✖️ jq" 
+    iofogctl_install_exit
+    success=1
+else
+    echoSuccess " ✔️  jq"
 fi
 if [[ $gcp_success -ne 0  ]]; then
     echoError " ✖️ Gcloud" 

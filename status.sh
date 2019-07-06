@@ -10,6 +10,9 @@
 #  * SPDX-License-Identifier: EPL-2.0
 #  *******************************************************************************
 #
+
+. ./scripts/utils.sh
+
 usage() {
     echo
     echoInfo "Usage: `basename $0` [-h, --help] [namespace]"
@@ -20,7 +23,6 @@ if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
   usage
 fi
 
-. ./scripts/utils.sh
 
 # Export user credentials
 . ./my_credentials.env
