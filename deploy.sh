@@ -11,6 +11,21 @@
 #  *******************************************************************************
 #
 
+#
+# Print out our usage
+#
+usage() {
+    echo
+    echoInfo "Usage: `basename $0` [-h, --help] [namespace]"
+    echoInfo "$0 will deploy a GKE ioFog stack using terraform and connect to it using iofogctl"
+    echoInfo "If provided the namespace will be used when using iofogctl"
+    exit 0
+}
+
+if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
+  usage
+fi
+
 . ./scripts/utils.sh
 
 # Export user credentials
@@ -34,25 +49,35 @@ displayError() {
 }
 
 connectIofogctl() {
-  
+  IOFOGCTL_USER=$(cat ./my_vars.tfvars | grep 'iofogUser_email' | awk '{print $3}')
+  IOFOGCTL_PWD=$(cat ./my_vars.tfvars | grep 'iofogUser_password' | awk '{print $3}')
+  IOFOGCTL_PWD=$(kubectl get svc -n iofog | grep 'connector' | awk '{print $4}')
+  echo $IOFOGCTL_USER
+  echo $PWD
+  echo $CONTROLLER_IP
+  NAMESPACE=$1
+  NAMESPACE="${NAMESPACE:-default}"
+  iofogctl -n "$NAMESPACE" connect GKE_Controller --controller "$CONTCONTROLLER_IPRO:51121" --email "$IOFOGCTL_USER" --pass "$IOFOGCTL_PWD"
+  iofogctl -n "$NAMESPACE" get all 
+}
+ 
+{
+  terraform init
+} || {
+  displayError
+}
+{
+  terraform plan -var-file="user_vars.tfvars"
+} || {
+  displayError
+}
+{
+  terraform apply -var-file="user_vars.tfvars" -auto-approve
+} || {
+  displayError
 }
 
-terraform init
-if [[ $? -eq 0 ]]; then
-  terraform plan -var-file="user_vars.tfvars"
-else
-  displayError
-fi
-if [[ $? -eq 0 ]]; then
-  terraform apply -var-file="user_vars.tfvars" -auto-approve
-else
-  displayError
-fi
-if [[ $? -eq 0 ]]; then
-  echo ""
-  echoSuccess "You are done !"
-  ./status.sh
-  connectIofogctl
-else
-  displayError
-fi
+echo ""
+echoSuccess "You are done !"
+./status.sh
+connectIofogctl

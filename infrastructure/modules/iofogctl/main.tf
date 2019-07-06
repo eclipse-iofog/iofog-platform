@@ -14,6 +14,9 @@ variable "iofogUser_email"          {}
 variable "iofogUser_password"       {}
 variable "agent_repo"               {}
 variable "agent_version"            {}
+variable "namespace"                {
+  default = "iofog"
+}
 variable "agent_list"               {
     type = "list"
 }
@@ -61,7 +64,7 @@ resource "null_resource" "iofogctl_deploy" {
         command = "export KUBECONFIG=./kubeconfig && gcloud beta container clusters get-credentials ${var.cluster_name} --region ${var.region} --project ${var.project_id}"
     }
     provisioner "local-exec" {
-        command = "export AGENT_VERSION=${var.agent_version} && iofogctl create namespace iofog || echo 'namespace esists!' && iofogctl deploy -f iofogctl_inventory.yaml -n iofog"
+        command = "export AGENT_VERSION=${var.agent_version} && iofogctl create ${var.namespace} iofog || echo 'namespace exists!' && iofogctl deploy -f iofogctl_inventory.yaml -n ${var.namespace}"
     }
     depends_on = [
         "null_resource.export_rendered_template"

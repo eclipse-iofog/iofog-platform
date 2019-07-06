@@ -10,11 +10,21 @@
 #  * SPDX-License-Identifier: EPL-2.0
 #  *******************************************************************************
 #
+usage() {
+    echo
+    echoInfo "Usage: `basename $0` [-h, --help] [namespace]"
+    echoInfo "$0 show the K8s status of your GKE ioFog stack"
+    exit 0
+}
+if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
+  usage
+fi
 
 . ./scripts/utils.sh
 
 # Export user credentials
 . ./my_credentials.env
+
 
 prettyHeader "GKE ioFog stack status"
 

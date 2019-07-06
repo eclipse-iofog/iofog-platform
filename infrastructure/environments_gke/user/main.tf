@@ -114,6 +114,7 @@ module "iofogctl" {
     agent_repo                  = "${var.agent_repo}"
     agent_version               = "${var.agent_version}"
     agent_list                  = "${var.agent_list}"
+    namespace                   = "${var.iofogctl_namespace}"
     template_path               = "${file("../../environments_gke/iofogctl_inventory.tpl")}"
 }
 
