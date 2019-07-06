@@ -60,6 +60,7 @@ To destroy your ioFog stack, run `./destroy.sh`
 | `iofogUser_surname`    | *surname for registration with controller*                   |
 | `iofogUser_email`      | *email to use to register with controller*                   |
 | `iofogUser_password`   | *password(length >=8) for user registeration with controller*|
+| `iofogctl_namespace`   | *namespace to be used with iofogctl commands*                |
     
 ## Iofoctl for Agent Configuration
 
