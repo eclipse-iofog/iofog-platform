@@ -16,19 +16,13 @@
 # Export user credentials
 . ./my_credentials.env
 
-prettyHeader "Destroying GKE ioFog stack..."
+prettyHeader "GKE ioFog stack status"
 
-echoInfo "Using ./my_vars.tfvars as variable file"
-echoInfo "Using ./my_credentials.env to export credentials"
+prettyTitle "Pods"
+kubectl get pods -n iofog -o wide
 echo ""
 
-# Copy user terraform vars
-cp ./my_vars.tfvars ./infrastructure/environments_gke/user/user_vars.tfvars
-# Set current working dir to the terraform gke environment user
-cd ./infrastructure/environments_gke/user/
 
-terraform init
-terraform destroy -var-file="user_vars.tfvars" -auto-approve
-
+prettyTitle "Services"
+kubectl get svc -n iofog
 echo ""
-echoSuccess "You are done!"
