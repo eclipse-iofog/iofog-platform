@@ -77,7 +77,7 @@ displayError() {
 
 echo ""
 echoSuccess "You are done !"
-cd -
+cd - > /dev/null
 . ./status.sh
 
 NAMESPACE=$(cat ./my_vars.tfvars | grep 'iofogctl_namespace' | awk '{print $3}')
