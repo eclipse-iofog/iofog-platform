@@ -64,7 +64,7 @@ resource "null_resource" "iofogctl_deploy" {
         command = "export KUBECONFIG=./kubeconfig && gcloud beta container clusters get-credentials ${var.cluster_name} --region ${var.region} --project ${var.project_id}"
     }
     provisioner "local-exec" {
-        command = "export AGENT_VERSION=${var.agent_version} && iofogctl create ${var.namespace} iofog || echo 'namespace exists!' && iofogctl deploy -f iofogctl_inventory.yaml -n ${var.namespace}"
+        command = "export AGENT_VERSION=${var.agent_version} && iofogctl create namespace ${var.namespace} 2> /dev/null || iofogctl deploy -f iofogctl_inventory.yaml -n ${var.namespace} 2>&1 >/dev/null"
     }
     depends_on = [
         "null_resource.export_rendered_template"

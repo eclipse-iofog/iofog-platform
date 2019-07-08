@@ -18,7 +18,7 @@ operating_system    = "ubuntu_16_04"
 packet_facility     = ["sjc1", "ewr1"]             
 count_x86           = "1"
 plan_x86            = "c1.small.x86"
-count_arm           = "0"
+count_arm           = "1"
 plan_arm            = "c2.large.arm"
 # used by ansible for agent configuration on packet
 ssh_key             = "~/.ssh/id_ecdsa"
@@ -30,7 +30,7 @@ iofogUser_email     = "user@domain.com"
 iofogUser_password  = "#Bugs4Fun"
 
 # iofogctl vars
-iofogctl_namespace  = "iofog"
+iofogctl_namespace  = "default"
 
 # You will need to export the agent snapshot package cloud token as env var(PACKAGE_CLOUD_CREDS) to access the dev repo
 # uncomment these if using dev repo
