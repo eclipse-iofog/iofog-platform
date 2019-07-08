@@ -1,8 +1,8 @@
 # Dev variables
-project_id          = "focal-freedom-236620"
-environment         = "tmp-lkrcal"
+project_id          = "<your-gcp-project-id>"
+environment         = "<your-environment-name>" # Pick any name you like
 gcp_region          = "us-west2"
-gcp_service_account = "iofog-platform@focal-freedom-236620.iam.gserviceaccount.com"
+gcp_service_account = "<gcp-service-account-name>" # Something in the vein of <service-name>@<project-id>.iam.gserviceaccount.com
 
 # iofog vars
 controller_ip       = "" # Static ip for loadbalancer, eompty is fine.
@@ -13,7 +13,7 @@ operator_image      = "iofog/iofog-operator:1.0.0"
 kubelet_image       = "iofog/iofog-kubelet:1.0.0"
 
 #packet sample vars used to setup edge nodes in arm or x86
-packet_project_id   = "880125b9-d7b6-43c3-99f5-abd1af3ce879"
+packet_project_id   = "<your-packet-project-id>"
 operating_system    = "ubuntu_16_04"
 packet_facility     = ["sjc1", "ewr1"]             
 count_x86           = "1"
