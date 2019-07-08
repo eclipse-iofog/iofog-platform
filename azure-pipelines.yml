@@ -10,7 +10,7 @@ trigger:
 pr: none
 
 schedules:
-- cron: '17 * * * *'
+- cron: '* * * * *'
   displayName: Daily build 7am, 12pm and 6pm PST
   branches:
     include:
