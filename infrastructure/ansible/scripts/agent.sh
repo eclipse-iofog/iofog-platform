@@ -137,6 +137,7 @@ check_command_status() {
 }
 
 disable_package_preconfiguration() {
+	lsb_dist="$(. /etc/os-release && echo "$ID")"
 	if [ "$lsb_dist" = "debian" ]; then
 		if [ -f /etc/apt/apt.conf.d/70debconf ]; then
 			$sh_c 'ex +"%s@DPkg@//DPkg" -cwq /etc/apt/apt.conf.d/70debconf'
@@ -153,6 +154,7 @@ add_repo_if_not_exists() {
 }
 
 add_initial_apt_repos_if_not_exist() {
+	lsb_dist="$(. /etc/os-release && echo "$ID")"
 	case "$lsb_dist" in
 		debian)
 			if [ "$dist_version" = "stretch" ]; then
