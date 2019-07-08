@@ -11,7 +11,7 @@ ioFog Platform provides a means by which to spin up and deploy an Eclipse ioFog 
 * Kubectl
 * Iofogctl
 
-You can run `./bootstrap.sh` in order to download thoses dependencies.
+You can run `./bootstrap.sh` in order to download those dependencies.
 
 You will also require the following environment variables
 ```sh

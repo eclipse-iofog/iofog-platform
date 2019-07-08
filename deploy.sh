@@ -42,7 +42,7 @@ cp ./my_vars.tfvars ./infrastructure/environments_gke/user/user_vars.tfvars
 cd ./infrastructure/environments_gke/user/
 
 displayError() {
-  echoError "Something went wrong with your terraform deployment. Please find more informations in the logs above."
+  echoError "Something went wrong with your terraform deployment. Please find more information in the logs above."
   exit 1
 }
 
