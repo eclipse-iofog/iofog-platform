@@ -3,7 +3,6 @@ trigger:
     include:
       - develop
       - fix-pipeline
-
   paths:
     exclude:
       - README.md
@@ -11,11 +10,11 @@ trigger:
 pr: none
 
 schedules:
-- cron: "0 1,14,19 * * *"
+- cron: '17 * * * *'
   displayName: Daily build 7am, 12pm and 6pm PST
   branches:
     include:
-    - develop
+      - develop
   always: true
 
 variables:
