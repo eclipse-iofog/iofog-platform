@@ -52,8 +52,8 @@ cleanTerrformStateFiles() {
 }
 
 disconnectIofogctl() {
-  NAMESPACE=$(cat ./user_vars.tfvars | grep iofogctl_namespace | awk '{print $3}')
-  NAMESPACE="${NAMESPACE:-\"iofog\"}"
+  NAMESPACE=$(cat ./user_vars.tfvars | grep iofogctl_namespace | awk '{print $3}' | tr -d \")
+  NAMESPACE="${NAMESPACE:-iofog}"
   {
     iofogctl -n $NAMESPACE disconnect
   } || {
