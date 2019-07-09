@@ -80,5 +80,5 @@ echoSuccess "You are done !"
 cd - > /dev/null
 . ./status.sh
 
-NAMESPACE=$(cat ./my_vars.tfvars | grep 'iofogctl_namespace' | awk '{print $3}')
-iofogctl -n $NAMESPACE get all
+NAMESPACE=$(cat ./my_vars.tfvars | grep 'iofogctl_namespace' | awk '{print $3}' | tr -d \")
+iofogctl get all -n $NAMESPACE
