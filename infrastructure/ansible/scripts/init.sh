@@ -4,6 +4,12 @@ AGENT_NAME=$2
 USER_EMAIL=$3
 USER_PASSWORD=$4
 
+echo "Using variables:"
+echo "Controller host: ${CONTROLLER_HOST}"
+echo "Agent Name: ${AGENT_NAME}"
+echo "User: ${USER_EMAIL}"
+echo "Password: ${USER_PASSWORD}"
+
 token=""
 uuid=""
 

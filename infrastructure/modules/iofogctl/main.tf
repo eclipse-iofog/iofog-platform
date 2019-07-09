@@ -14,6 +14,8 @@ variable "iofogUser_email"          {}
 variable "iofogUser_password"       {}
 variable "agent_repo"               {}
 variable "agent_version"            {}
+variable "namespace"                {
+}
 variable "agent_list"               {
     type = "list"
 }
@@ -45,23 +47,23 @@ resource "null_resource" "export_rendered_template" {
     }
 }
 
-##########################################################################
+##################################################################################################################
 # Run iofogctl to install agent and deploy ecn
 # Queries for controller ip from GKE to pass to iofogctl
-# Expects env variable PACKAGE_CLOUD_CREDS populated to pass to iofogctl
-##########################################################################
+# Expects env variable PACKAGE_CLOUD_CREDS populated to pass to iofogctl for instaling unreleased agent versions
+#################################################################################################################
 resource "null_resource" "iofogctl_deploy" {
     triggers {
         build_number = "${timestamp()}"
     }
 
     # use iofogctl to deploy iofoc ecn and configure agents
-    # this will use the config template rendered by iofogctl module
+    # this will use the config template rendered earlier
     provisioner "local-exec" {
         command = "export KUBECONFIG=./kubeconfig && gcloud beta container clusters get-credentials ${var.cluster_name} --region ${var.region} --project ${var.project_id}"
     }
     provisioner "local-exec" {
-        command = "export AGENT_VERSION=${var.agent_version} && iofogctl create namespace iofog || echo 'namespace esists!' && iofogctl deploy -f iofogctl_inventory.yaml -n iofog"
+        command = "export AGENT_VERSION=${var.agent_version} && iofogctl create namespace ${var.namespace} 2> /dev/null || iofogctl deploy -f iofogctl_inventory.yaml -n ${var.namespace} 2>&1 >/dev/null"
     }
     depends_on = [
         "null_resource.export_rendered_template"

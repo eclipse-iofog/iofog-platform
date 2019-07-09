@@ -4,3 +4,5 @@
 *.retry
 iofogctl_inventory.yaml
 .idea/
+my_credentials.env
+my_vars.tfvars
