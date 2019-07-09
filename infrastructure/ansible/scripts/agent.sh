@@ -499,6 +499,7 @@ token="$3"
 if [ "$env" = "dev" && ! -z "$version" && ! -z "$token"]; then
 	echo "Will be installing iofog-agent version $version from snapshot repo"
 else 
+	env=""
 	echo "Will be installing iofog-agent from public repo"
 	echo "To install from snapshot repo, run script with additional param 'dev <VERSION> <PACKAGE_CLOUD_TOKEN>'"
 fi
