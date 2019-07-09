@@ -15,8 +15,12 @@ You can run `./bootstrap.sh` in order to download those dependencies.
 
 You will also require the following environment variables
 ```sh
-export PACKAGE_CLOUD_TOKEN=<package_cloud_token> # If you need to download private packages from packagecloud
+# If you need to download private packages from packagecloud (Only used to download unstable or dev versions)
+# This will be package cloud repository token. NOT the package cloud API token
+export PACKAGE_CLOUD_TOKEN=<package_cloud_token>
+
 export PACKET_AUTH_TOKEN=<packet_auth_token> # If you want to deploy agents on Packet
+
 export GOOGLE_APPLICATION_CREDENTIALS=<path-to-json>
 ```
 You can edit the file `./my_credentials.sh` to provide your keys.
