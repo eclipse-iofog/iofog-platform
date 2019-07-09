@@ -31,8 +31,3 @@ iofogUser_password  = "#Bugs4Fun"
 
 # iofogctl vars
 iofogctl_namespace  = "iofog"
-
-# You will need to export the agent snapshot package cloud token as env var(PACKAGE_CLOUD_CREDS) to access the dev repo
-# uncomment these if using dev repo
-# agent_repo          = "dev" 
-# agent_version       = "1.0.14-b1245"
