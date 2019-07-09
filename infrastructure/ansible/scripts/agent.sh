@@ -496,7 +496,7 @@ do_install() {
 env="$1"
 version="$2"
 token="$3"
-if [ "$env" = "dev" && ! -z "$version" && ! -z "$token"]; then
+if [ "$env" = "dev" ] && ! [ -z "$version" ] && ! [ -z "$token" ]; then
 	echo "Will be installing iofog-agent version $version from snapshot repo"
 else 
 	env=""
