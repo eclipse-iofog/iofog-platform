@@ -121,6 +121,7 @@ module "iofogctl" {
     iofogUser_surname           = "${var.iofogUser_surname}"
     iofogUser_email             = "${var.iofogUser_email}"
     iofogUser_password          = "${var.iofogUser_password}"
+    namespace                   = "${var.iofogctl_namespace}"
     agent_repo                  = "${var.agent_repo}"
     agent_version               = "${var.agent_version}"
     agent_list                  = "${var.agent_list}"
@@ -132,38 +133,18 @@ module "iofogctl" {
 ##########################################################################
 resource "null_resource" "packet_agent_deploy" {
     triggers {
-        build_number = "${timestamp()}"
+        packet_instance_ids = "${join(",", module.packet_edge_nodes.edge_nodes)}"
     }
-    # Fetch Packet agent list
-    provisioner "local-exec" { 
-        command = "echo Running Agent provisioning on Packet nodes: ${join(",", module.packet_edge_nodes.edge_nodes)}"
-    }
-    # Fetch the controller ip from iofog installation to pass to agent configuration
-    # Run ansible playbook against packet edge nodes to install agents
-    provisioner "local-exec" {
-        command = "export TF_VAR_controller_ip=$(kubectl get svc controller --template=\"{{range.status.loadBalancer.ingress}}{{.ip}}{{end}}\" -n ${var.iofogctl_namespace}) && ansible-playbook ../../ansible/agent.yml --private-key=${var.ssh_key} -e \"controller_ip=$TF_VAR_controller_ip package_cloud_creds=$PACKAGE_CLOUD_TOKEN agent_repo=${var.agent_repo} agent_version=${var.agent_version} user_email=${var.iofogUser_email} user_password='${var.iofogUser_password}'\" -i \"${join(",", module.packet_edge_nodes.edge_nodes)}\","
-    }
+    count = "${var.count_x86 + var.count_arm}" 
 
+    provisioner "local-exec" {
+        command = "export AGENT_VERSION=${var.agent_version} && export TF_VAR_controller_ip=$(kubectl get svc controller --template=\"{{range.status.loadBalancer.ingress}}{{.ip}}{{end}}\" -n ${var.iofogctl_namespace}) && iofogctl deploy agent packet_agent_${count.index} --user root --key-file ${var.ssh_key} --host ${module.packet_edge_nodes.edge_nodes[count.index]} -n ${var.iofogctl_namespace} 2>&1 >/dev/null"
+    }
     depends_on = [
-       "module.iofogctl",
-       "module.packet_edge_nodes"
+        "module.iofogctl",
+        "module.packet_edge_nodes"
     ]
 }
-
-# resource "null_resource" "packet_agent_deploy" {
-#     triggers {
-#         packet_instance_ids = "${join(",", module.packet_edge_nodes.edge_nodes)}"
-#     }
-#     count = "${var.count_x86 + var.count_arm}" 
-
-#     provisioner "local-exec" {
-#         command = "export AGENT_VERSION=${var.agent_version} && export TF_VAR_controller_ip=$(kubectl get svc controller --template=\"{{range.status.loadBalancer.ingress}}{{.ip}}{{end}}\" -n ${var.iofogctl_namespace}) && iofogctl deploy agent packet_agent_${count.index} --user root --key-file ${var.ssh_key} --host ${module.packet_edge_nodes.edge_nodes[count.index]}"
-#     }
-#     depends_on = [
-#         "module.iofogctl",
-#         "module.packet_edge_nodes"
-#     ]
-# }
 
 output "packet_instance_ip_addrs" {
   value = "${module.packet_edge_nodes.edge_nodes}"
