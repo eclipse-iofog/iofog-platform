@@ -36,6 +36,7 @@ echo ""
 
 # Copy user terraform vars
 cp ./my_vars.tfvars ./infrastructure/environments_gke/user/user_vars.tfvars
+
 # Set current working dir to the terraform gke environment user
 cd ./infrastructure/environments_gke/user/
 
@@ -50,19 +51,24 @@ cleanTerrformStateFiles() {
   rm -rf iofogctl_inventory.yaml
 }
 
-# disconnectIofogctl() {
-#   NAMESPACE=$1
-#   NAMESPACE="${NAMESPACE:-default}"
-#   {
-#     iofogctl -n "$NAMESPACE" disconnect GKE_Controller
-#   } || {
-#     echoInfo "Could not disconnect from iofogctl"
-#   }
-# }
+disconnectIofogctl() {
+  NAMESPACE=$(cat ./user_vars.tfvars | grep iofogctl_namespace | awk '{print $3}')
+  NAMESPACE="${NAMESPACE:-\"iofog\"}"
+  {
+    iofogctl -n $NAMESPACE disconnect
+  } || {
+    echoInfo "Could not disconnect from iofogctl"
+  }
+}
 
  
 {
   terraform init
+} || {
+  displayError
+} 
+{
+  disconnectIofogctl
 } || {
   displayError
 }
