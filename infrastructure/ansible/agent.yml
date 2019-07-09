@@ -80,7 +80,7 @@
         mode: 755
 
     - name: Run the Agent setup
-      shell: ./init.sh http://"{{ controller_ip }}":51121/api/v3 {{ ansible_hostname }} {{ user_email }} {{ user_password }}
+      shell: ./init.sh http://"{{ controller_ip }}":51121/api/v3 {{ ansible_hostname }} {{ user_email }} "{{ user_password }}"
       register: setup
 
     - debug: var=setup.stdout_lines    
