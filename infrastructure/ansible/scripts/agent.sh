@@ -49,15 +49,17 @@ get_distribution() {
 	# Every system that we officially support has /etc/os-release
 	if [ -r /etc/os-release ]; then
 		lsb_dist="$(. /etc/os-release && echo "$ID")"
+		lsb_dist="$(echo "$lsb_dist" | tr '[:upper:]' '[:lower:]')"
+	else
+		echo "Unsupported Linux distribution!"
+		exit 1
 	fi
-	# Returning an empty string here should be alright since the
-	# case statements don't act unless you provide an actual value
 	echo "# Our distro is '$lsb_dist'"
+	echo $lsb_dist
 }
 
 # Check if this is a forked Linux distro
 check_forked() {
-
 	# Check for lsb_release command existence, it usually exists in forked distros
 	if command_exists lsb_release; then
 		# Check if the `-u` option is supported
@@ -160,12 +162,12 @@ add_initial_apt_repos_if_not_exist() {
 				add_repo_if_not_exists "deb-src http://deb.debian.org/debian-security/ stretch/updates main"
 				add_repo_if_not_exists "deb http://deb.debian.org/debian stretch-updates main"
 				add_repo_if_not_exists "deb-src http://deb.debian.org/debian stretch-updates main"
-			elif [ "dist_version" = "jessie" ]; then
+			elif [ "$dist_version" = "jessie" ]; then
 				add_repo_if_not_exists "deb http://ftp.de.debian.org/debian jessie main"
 			fi
+			$sh_c 'apt-get update -qq'
 			;;
 	esac
-	$sh_c 'apt-get update -qq'
 }
 
 do_install_java() {
@@ -227,6 +229,48 @@ start_docker() {
 	fi
 }
 
+install_docker_apt() {
+	sudo $1 update -qy
+	sudo $1 install \
+			apt-transport-https \
+			ca-certificates \
+			curl \
+			gnupg2 \
+			software-properties-common -qy
+	DISTRO=$(lsb_release -a 2> /dev/null | grep 'Distributor ID' | awk '{print $3}')
+	if [ "$DISTRO" == "Ubuntu" ]; then
+		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+	else
+		curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+	fi
+	sudo $1 update -qy
+	sudo $1 install docker-ce docker-ce-cli containerd.io -qy
+}
+
+install_docker_linux() {
+    if [ -x "$(command -v apt-get)" ]; then
+			install_docker_apt "apt-get"
+		elif [ -x "$(command -v apt)" ]; then
+			install_docker_apt "apt"
+    elif [ -x "$(command -v dnf)" ]; then
+        sudo dnf -y install dnf-plugins-core
+        sudo dnf config-manager \
+            --add-repo \
+            https://download.docker.com/linux/fedora/docker-ce.repo
+        sudo dnf install docker-ce docker-ce-cli containerd.io -y
+    elif [ -x "$(command -v yum)" ]; then
+        sudo yum install -y yum-utils \
+            device-mapper-persistent-data \
+            lvm2 -qy
+        sudo yum-config-manager \
+            --add-repo \
+            https://download.docker.com/linux/centos/docker-ce.repo
+        sudo yum install docker-ce docker-ce-cli containerd.io -qy
+    else
+        handle_docker_unsuccessful_installation
+    fi
+}
+
 do_install_docker() {
 	# Check that Docker 18.09.2 or greater is installed
 	if command_exists docker; then
@@ -237,10 +281,10 @@ do_install_docker() {
 		fi
 	fi
 	echo "# Installing Docker..."
-	echo
+	# install_docker_linux
 	sleep 3
 	curl -fsSL https://get.docker.com/ | sh
-
+	
 	handle_docker_unsuccessful_installation
 	start_docker
 
@@ -351,8 +395,7 @@ do_install() {
 		fi
 	fi
 	
-	lsb_dist=$( get_distribution )
-	lsb_dist="$(echo "$lsb_dist" | tr '[:upper:]' '[:lower:]')"
+	get_distribution
 
 	case "$lsb_dist" in
 
@@ -453,13 +496,11 @@ do_install() {
 env="$1"
 version="$2"
 token="$3"
-if [ "$env" = "dev" ] 
-then
-	[ -z "$version" ] && { echo "Provide version number to install from snapshot repo" ; exit 1; }
-	[ -z "$token" ] && { echo "Provide access token to query snapshot repo on Package cloud" ; exit 1; }
-
+if [ "$env" = "dev" && ! -z "$version" && ! -z "$token"]; then
+	echo "Will be installing iofog-agent version $version from snapshot repo"
 else 
 	echo "Will be installing iofog-agent from public repo"
 	echo "To install from snapshot repo, run script with additional param 'dev <VERSION> <PACKAGE_CLOUD_TOKEN>'"
 fi
 do_install
+
