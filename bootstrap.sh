@@ -13,10 +13,12 @@
 . ./scripts/utils.sh
 
 usage() {
+    prettyTitle "iofog Platform Bootstrap"
     echo
     echoInfo "Usage: `basename $0` [-h, --help] [--verify]"
+    echoInfo "  --verify will only check for dependencies, and will NOT initialise user variable files"
+    echo
     echoInfo "$0 will install all dependencies and initialise user variables files"
-    echoInfo "--verify will only check for dependencies, and will NOT initialise user variable files"
     exit 0
 }
 if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then

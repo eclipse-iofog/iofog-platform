@@ -83,7 +83,7 @@ checkForInstallation() {
 #
 checkOSPlatform() {
 	if [[ "$(uname -s)" = "Darwin" ]]; then
-		ID=macos
+		OS_ID=macos
 		D_NUM="$(sysctl kern.osproductversion | awk '{print $2}' | awk -F '.' '{print $1}')"
 	else
 		. /etc/os-release
@@ -96,7 +96,7 @@ checkOSPlatform() {
 		fi
 	fi
 
-	export ID D_NUM
+	export OS_ID D_NUM
 }
 
 #

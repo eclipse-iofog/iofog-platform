@@ -1,15 +1,18 @@
-# ioFog Platform
+# Eclipse ioFog Platform
 
-ioFog Platform provides a means by which to spin up and deploy an Eclipse ioFog stack on GKE and Packet.
+The Eclipse ioFog Platform project provides a means by which to spin up and deploy an Eclipse ioFog stack running
+in the Cloud. Currently, we demonstrate how to achieve this on GKE and Packet, although since we are using 
+[Terraform](https://www.terraform.io/) under the covers you can easily extend/contribute to support your preferred 
+cloud infrastructure provider.
 
 # Requirements
 
-* Gcloud SDK
+* GCloud SDK 
 * Terraform (v0.11.x)
-* Ansible
+* ansible
 * gcloud
-* Kubectl
-* Iofogctl
+* kubectl
+* iofogctl
 
 You can run `./bootstrap.sh` in order to download those dependencies.
 
@@ -66,7 +69,7 @@ To destroy your ioFog stack, run `./destroy.sh`
 | `iofogUser_password`   | *password(length >=8) for user registeration with controller*|
 | `iofogctl_namespace`   | *namespace to be used with iofogctl commands*                |
     
-## Iofoctl for Agent Configuration
+## iofogctl for Agent Configuration
 
 If you plan to use snapshot repo, you will need to provide package cloud token, leave it empty if installing released version. 
 
