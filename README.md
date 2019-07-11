@@ -18,8 +18,7 @@ You can run `./bootstrap.sh` in order to download those dependencies.
 
 ## Option to deploy agent nodes on Packet
 We support deployment of agent nodes on packet provided you have an account. In situations where you do not have your own devices acting as edge nodes, you can sping a few nodes on packet to act as agents. You will need Packet token to setup packet provider on terraform. Also be aware of account limitation for example,unable to spin more than 2 arm nodes per project. 
-You will also need to make sure you have uploaded an ssh key on your packet project that will be used by automation to add to newly created instances. 
-Uncomment out packet module and packet provider information if you are intending to use packet - ![main.tf](infrastructure/environments_gke/user/main.tf)
+You will also need to make sure you have uploaded an ssh key on your packet project that will be used by automation to add to newly created instances.
 
 You will also require the following environment variables
 ```sh

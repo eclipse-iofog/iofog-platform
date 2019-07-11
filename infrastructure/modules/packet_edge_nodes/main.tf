@@ -12,6 +12,10 @@ variable "facility"           {
     type = "list"
 }
 
+provider "packet" {
+    version                     = "~> 2.2"
+}
+
 resource "packet_device" "x86_node" {
     hostname                  = "${format("${var.environment}-iofog-x86-%02d", count.index)}"
     operating_system          = "${var.operating_system}"

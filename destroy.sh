@@ -14,31 +14,38 @@
 
 usage() {
     echo
-    echoInfo "Usage: `basename $0` [-h, --help]"
+    echoInfo "Usage: `basename $0` [-h, --help] [--only-clean-state]"
     echoInfo "$0 will destroy a GKE ioFog stack using terraform."
+    echoInfo "--only-clean-state will only clean the terraform state files."
     exit 0
 }
 if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
   usage
 fi
 
+cleanTerrformStateFiles() {
+  rm -rf .terraform
+  rm -rf *.tfstate*
+  rm -rf iofogctl_inventory.yaml
+}
+
+if [[ "$1" == "--only-clean-state" ]]; then
+  prettyHeader "Deleting terraform state"
+  cd ./infrastructure/environments_gke/user/
+  cleanTerrformStateFiles
+  echoSuccess "You are done!"
+  exit 0
+fi
+
 
 # Export user credentials
 . ./my_credentials.env
-
-
 
 prettyHeader "Destroying GKE ioFog stack..."
 
 echoInfo "Using ./my_vars.tfvars as variable file"
 echoInfo "Using ./my_credentials.env to export credentials"
 echo ""
-
-# Copy user terraform vars
-cp ./my_vars.tfvars ./infrastructure/environments_gke/user/user_vars.tfvars
-
-# Set current working dir to the terraform gke environment user
-cd ./infrastructure/environments_gke/user/
 
 displayError() {
   echoError "Something went wrong with your terraform deployment. Please find more informations in the logs above."
@@ -61,7 +68,15 @@ disconnectIofogctl() {
   }
 }
 
- 
+# Copy user terraform vars
+cp ./my_vars.tfvars ./infrastructure/environments_gke/user/user_vars.tfvars
+
+# Generate main.tf file
+. ./scripts/generate_terraform_main.sh
+
+# Set current working dir to the terraform gke environment user
+cd ./infrastructure/environments_gke/user/
+
 {
   terraform init
 } || {

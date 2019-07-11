@@ -36,10 +36,7 @@ prettyHeader "Deploying GKE ioFog stack..."
 echoInfo "Using ./my_vars.tfvars as variable file"
 echoInfo "Using ./my_credentials.env to export credentials"
 
-# Copy user terraform vars
-cp ./my_vars.tfvars ./infrastructure/environments_gke/user/user_vars.tfvars
-# Set current working dir to the terraform gke environment user
-cd ./infrastructure/environments_gke/user/
+TERRAFORM_FOLDER="./infrastructure/environments_gke/user"
 
 displayError() {
   echoError "Something went wrong with your terraform deployment. Please find more information in the logs above."
@@ -58,7 +55,17 @@ displayError() {
 #   iofogctl -n "$NAMESPACE" connect GKE_Controller --controller "$CONTCONTROLLER_IPRO:51121" --email "$IOFOGCTL_USER" --pass "$IOFOGCTL_PWD"
 #   iofogctl -n "$NAMESPACE" get all 
 # }
- 
+
+
+# Copy user terraform vars
+cp ./my_vars.tfvars "$TERRAFORM_FOLDER/user_vars.tfvars"
+
+# Generate main.tf file
+. ./scripts/generate_terraform_main.sh
+
+# Set current working dir to the terraform gke environment user
+cd "$TERRAFORM_FOLDER"
+
 {
   terraform init
 } || {

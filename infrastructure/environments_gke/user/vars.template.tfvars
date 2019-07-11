@@ -13,17 +13,18 @@ connector_image     = "iofog/connector:1.1.0"
 operator_image      = "iofog/iofog-operator:1.0.0"
 kubelet_image       = "iofog/iofog-kubelet:1.0.0"
 
+# Uncomment this out if you want to use packet nodes as agents
 # Packet sample config used to setup and arm or x86 edge nodes to your controller
-packet_project_id   = "<your-packet-project-id>"
-operating_system    = "ubuntu_16_04"
-packet_facility     = ["sjc1", "ewr1"]             
-count_x86           = "1"
-plan_x86            = "c1.small.x86"
-count_arm           = "0"
-plan_arm            = "c2.large.arm"
+# packet_project_id   = "<your-packet-project-id>"
+# operating_system    = "ubuntu_16_04"
+# packet_facility     = ["sjc1", "ewr1"]             
+# count_x86           = "1"
+# plan_x86            = "c1.small.x86"
+# count_arm           = "0"
+# plan_arm            = "c2.large.arm"
+# Used by iofogctl for agent configuration on packet
+# ssh_key             = "~/.ssh/id_ecdsa"
 
-# Used by ansible for agent configuration on packet
-ssh_key             = "~/.ssh/id_ecdsa"
 
 # ioFog user vars (used to configure controller and agents)
 iofogUser_name      = "iofog"
@@ -36,10 +37,13 @@ iofogctl_namespace  = "iofog"
 
 # List of edge nodes to install and configure agents on
 agent_list = 
-[{
-    name = "<AGENT_NAME>",
-    user = "<AGENT_USER>",
-    host = "<AGENT_IP>",
-    port = "<SSH_PORT>",
-    keyfile = "<PRIVATE_SSH_KEY>"
-}]
+[
+    # Agent example
+    # {
+    #     name = "<AGENT_NAME>",
+    #     user = "<AGENT_USER>",
+    #     host = "<AGENT_IP>",
+    #     port = "<SSH_PORT>",
+    #     keyfile = "<PRIVATE_SSH_KEY>"
+    # },
+]
