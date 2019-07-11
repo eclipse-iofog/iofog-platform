@@ -122,6 +122,10 @@ jobs:
                           -var 'kubelet_image=$(kubelet_image)' \
                           -var 'agent_repo=$(tf_agent_repo)' \
                           -var 'agent_version=$(tf_agent_version)' -auto-approve
+          echo
+          echo "Resources deployed:"
+          echo
+          kubectl get all -n iofog -o wide
         displayName: 'Deploy infrastructure'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
         env:
