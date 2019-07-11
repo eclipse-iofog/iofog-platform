@@ -1,7 +1,7 @@
 # Eclipse ioFog Platform
 
 The Eclipse ioFog Platform project provides a means by which to spin up and deploy an Eclipse ioFog stack running
-in the Cloud. Currently, we demonstrate how to achieve this on GKE and Packet, although since we are using 
+in the Cloud. Currently, we demonstrate how to achieve this on GKE (Google Kubernetes Engine), although since we are using 
 [Terraform](https://www.terraform.io/) under the covers you can easily extend/contribute to support your preferred 
 cloud infrastructure provider.
 
@@ -16,17 +16,23 @@ cloud infrastructure provider.
 
 You can run `./bootstrap.sh` in order to download those dependencies.
 
-## Option to deploy agent nodes on Packet
-We support deployment of agent nodes on packet provided you have an account. In situations where you do not have your own devices acting as edge nodes, you can sping a few nodes on packet to act as agents. You will need Packet token to setup packet provider on terraform. Also be aware of account limitation for example,unable to spin more than 2 arm nodes per project. 
-You will also need to make sure you have uploaded an ssh key on your packet project that will be used by automation to add to newly created instances.
+You will also require the following environment variables
+```sh
+  export GOOGLE_APPLICATION_CREDENTIALS=<path-to-json> # How to generate a service account json file: https://cloud.google.com/iam/docs/creating-managing-service-account-keys
+```
+You can edit the file `./my_credentials.sh` to provide your keys.
+
+## Option to deploy agent nodes on [Packet](https://www.packet.com/)
+We support deployment of agent nodes on [packet](https://www.packet.com/) provided you have an account. In situations where you do not have your own devices acting as edge nodes, you can sping a few nodes on packet to act as agents. You will need Packet token to setup packet provider on terraform. Also be aware of account limitation for example,unable to spin more than 2 arm nodes per project. 
+You will also need to make sure you have [uploaded an ssh key](https://support.packet.com/kb/articles/ssh-access) on your packet project that will be used by automation to add to newly created instances.
 
 You will also require the following environment variables
 ```sh
-export PACKET_AUTH_TOKEN=<packet_auth_token> # If you want to deploy agents on Packet
-
-export GOOGLE_APPLICATION_CREDENTIALS=<path-to-json>
+  export PACKET_AUTH_TOKEN=<YOUR_PACKET_API_KEY> # How to generate: https://support.packet.com/kb/articles/api-integrations
 ```
 You can edit the file `./my_credentials.sh` to provide your keys.
+
+Warning: We will instruct terraform to load packet agents only if the PACKET_AUTH_TOKEN environment variable is set (or uncommented in `./my_credentials.env`)
 
 ## Usage
 
@@ -69,10 +75,6 @@ To destroy your ioFog stack, run `./destroy.sh`
 | `iofogUser_password`   | *password(length >=8) for user registeration with controller*|
 | `iofogctl_namespace`   | *namespace to be used with iofogctl commands*                |
     
-## iofogctl for Agent Configuration
-
-If you plan to use snapshot repo, you will need to provide package cloud token, leave it empty if installing released version. 
-
 ### Helpful Commands
 
 - Login to gcloud: `gcloud auth login`

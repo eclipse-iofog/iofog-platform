@@ -3,11 +3,9 @@
 # Usage:
 # Uncommented and edit relevant secrets
 
+# Uncomment this variable if you want to use packet node as agents
+# How to generate: https://support.packet.com/kb/articles/api-integrations
+# export PACKET_AUTH_TOKEN=<YOUR_PACKET_API_KEY>
 
-# If you need to download private packages from packagecloud. (Only used to download unstable or dev versions)
-# This will be package cloud repository token. NOT the package cloud API token
-# export PACKAGE_CLOUD_TOKEN=<YOUR_PACKAGE_CLOUD_TOKEN>
-
-# export PACKET_AUTH_TOKEN=<YOUR_PACKET_API_KEY> # Change this value if you want to use packet nodes as agent
-
-# export GOOGLE_APPLICATION_CREDENTIALS=<YOUR_PATH_TO_JSON>
+# How to generate a gcloud service account json file: https://cloud.google.com/iam/docs/creating-managing-service-account-keys
+# export GOOGLE_APPLICATION_CREDENTIALS=<YOUR_PATH_TO_SERVICE_ACCOUNT_JSON>
