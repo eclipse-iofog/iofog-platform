@@ -546,7 +546,7 @@ fi
 
 
 if [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-    echoError "We do not currently support windows"
+    echoError "We do not currently support Windows"
     exit 1
 fi
 
