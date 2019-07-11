@@ -22,18 +22,6 @@ You will also require the following environment variables
 ```
 You can edit the file `./my_credentials.sh` to provide your keys.
 
-## Option to deploy agent nodes on [Packet](https://www.packet.com/)
-We support deployment of agent nodes on [packet](https://www.packet.com/) provided you have an account. In situations where you do not have your own devices acting as edge nodes, you can sping a few nodes on packet to act as agents. You will need Packet token to setup packet provider on terraform. Also be aware of account limitation for example,unable to spin more than 2 arm nodes per project. 
-You will also need to make sure you have [uploaded an ssh key](https://support.packet.com/kb/articles/ssh-access) on your packet project that will be used by automation to add to newly created instances.
-
-You will also require the following environment variables
-```sh
-  export PACKET_AUTH_TOKEN=<YOUR_PACKET_API_KEY> # How to generate: https://support.packet.com/kb/articles/api-integrations
-```
-You can edit the file `./my_credentials.sh` to provide your keys.
-
-Warning: We will instruct terraform to load packet agents only if the PACKET_AUTH_TOKEN environment variable is set (or uncommented in `./my_credentials.env`)
-
 ## Usage
 
 Run `./bootstrap.sh` to ensure all required dependencies are present and initialise terraform files.
@@ -62,19 +50,37 @@ To destroy your ioFog stack, run `./destroy.sh`
 | `ssh_key`              | *path to ssh key to be used for accessing edge nodes*        |
 | `agent_repo`           | *use `dev` for snapshot repo, else leave empty*              |
 | `agent_version`        | *populate if using dev snapshot repo for agent software*     |
-| `packet_project_id`    | *packet project id to spin reposrces on packet*              |
+| `iofogUser_name`       | *name for registration with controller*                      |
+| `iofogUser_surname`    | *surname for registration with controller*                   |
+| `iofogUser_email`      | *email to use to register with controller*                   |
+| `iofogUser_password`   | *password(length >=8) for user registeration with controller*|
+| `iofogctl_namespace`   | *namespace to be used with iofogctl commands*                |
+
+
+## Option to deploy agent nodes on [Packet](https://www.packet.com/)
+We support deployment of agent nodes on [packet](https://www.packet.com/) provided you have an account. In situations where you do not have your own devices acting as edge nodes, you can sping a few nodes on packet to act as agents. You will need Packet token to setup packet provider on terraform. Also be aware of account limitation for example,unable to spin more than 2 arm nodes per project. 
+You will also need to make sure you have [uploaded an ssh key](https://support.packet.com/kb/articles/ssh-access) on your packet project that will be used by automation to add to newly created instances.
+
+You will also require the following environment variables
+```sh
+  export PACKET_AUTH_TOKEN=<YOUR_PACKET_API_KEY> # How to generate: https://support.packet.com/kb/articles/api-integrations
+```
+You can edit the file `./my_credentials.sh` to provide your keys.
+
+Warning: We will instruct terraform to load packet agents only if the PACKET_AUTH_TOKEN environment variable is set (or uncommented in `./my_credentials.env`)
+
+Additional variables:
+
+| Variables              | Description                                                  |
+| -----------------------|:------------------------------------------------------------:|
+| `packet_project_id`    | *packet project id to spin agents on packet*                 |
 | `operating_system`     | *operating system for edge nodes on packet*                  |
 | `packet_facility`      | *facilities to use to drop agents*                           |
 | `count_x86`            | *number of x86(make sure your project plan allow)*           |
 | `plan_x86`             | *server plan for device on x86 available on facility chosen* |
 | `count_arm`            | *number of arm sgents to spin up*                            |
 | `plan_arm`             | *server plan for device on arm available on facility chosen* |
-| `iofogUser_name`       | *name for registration with controller*                      |
-| `iofogUser_surname`    | *surname for registration with controller*                   |
-| `iofogUser_email`      | *email to use to register with controller*                   |
-| `iofogUser_password`   | *password(length >=8) for user registeration with controller*|
-| `iofogctl_namespace`   | *namespace to be used with iofogctl commands*                |
-    
+
 ### Helpful Commands
 
 - Login to gcloud: `gcloud auth login`
