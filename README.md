@@ -21,7 +21,7 @@ You will also require the following environment variables
   export GOOGLE_APPLICATION_CREDENTIALS=<path-to-json>
   # How to generate a service account json file: https://cloud.google.com/iam/docs/creating-managing-service-account-keys
 ```
-You can edit the file `./my_credentials.sh` to provide your keys.
+You can edit the file `./my_credentials.sh` to provide your [keys](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
 
 ## Usage
 
@@ -64,7 +64,7 @@ You will also require the following environment variables
   export PACKET_AUTH_TOKEN=<YOUR_PACKET_API_KEY>
   # How to generate: https://support.packet.com/kb/articles/api-integrations
 ```
-You can edit the file `./my_credentials.sh` to provide your keys.
+You can edit the file `./my_credentials.sh` to provide your [keys](https://support.packet.com/kb/articles/api-integrations).
 
 Warning: We will instruct terraform to load packet agents only if the PACKET_AUTH_TOKEN environment variable is set (or uncommented in `./my_credentials.env`)
 
