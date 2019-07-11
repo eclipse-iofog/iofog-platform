@@ -77,7 +77,7 @@ Additional variables:
 | `packet_facility`      | *facilities to use to drop agents*                           |
 | `count_x86`            | *number of x86(make sure your project plan allow)*           |
 | `plan_x86`             | *server plan for device on x86 available on facility chosen* |
-| `count_arm`            | *number of arm sgents to spin up*                            |
+| `count_arm`            | *number of arm agents to spin up*                            |
 | `plan_arm`             | *server plan for device on arm available on facility chosen* |
 | `ssh_key`              | *path to ssh key to be used for accessing packet edge nodes* |
 
