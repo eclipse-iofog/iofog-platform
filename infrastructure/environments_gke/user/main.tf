@@ -49,10 +49,6 @@ provider "google-beta" {
     region                      = "${var.gcp_region}"
 }
 
-provider "packet" {
-    version                     = "~> 2.2"
-}
-
 #############################################################
 # Setup network vpc and subnets on GCP
 #############################################################
@@ -76,22 +72,6 @@ module "kubernetes" {
     gke_network_name            = "${module.gcp_network.network_name}"
     gke_subnetwork              = "${module.gcp_network.subnets_names[0]}"
     service_account             = "${var.gcp_service_account}"
-}
-
-#############################################################
-# Spin up edge nodes on Packet
-#############################################################
-module "packet_edge_nodes" {
-    source  = "../../modules/packet_edge_nodes"
-
-    project_id                  = "${var.packet_project_id}"
-    operating_system            = "${var.operating_system}"
-    facility                    = "${var.packet_facility}"
-    count_x86                   = "${var.count_x86}"
-    plan_x86                    = "${var.plan_x86}"
-    count_arm                   = "${var.count_arm}"
-    plan_arm                    = "${var.plan_arm}"
-    environment                 = "${var.environment}"
 }
 
 #############################################################
@@ -120,24 +100,46 @@ module "iofogctl" {
     template_path               = "${file("../../environments_gke/iofogctl_inventory.tpl")}"
 }
 
-##########################################################################
-# Install and provision Agent software on packet hosts
-##########################################################################
-resource "null_resource" "packet_agent_deploy" {
-    triggers {
-        packet_instance_ids = "${join(",", module.packet_edge_nodes.edge_nodes)}"
-    }
-    count = "${var.count_x86 + var.count_arm}" 
+# Uncomment following code to spin resources on Packet
+############################################################################
+# provider "packet" {
+#     version                     = "~> 2.2"
+# }
+# ##########################################################################
+# # Uncomment to spin up edge nodes on Packet
+# ##########################################################################
+# module "packet_edge_nodes" {
+#     source  = "../../modules/packet_edge_nodes"
 
-    provisioner "local-exec" {
-        command = "export AGENT_VERSION=${var.agent_version} && iofogctl deploy agent packet_agent_${count.index} --user root --key-file ${var.ssh_key} --host ${module.packet_edge_nodes.edge_nodes[count.index]} -n ${var.iofogctl_namespace} 2>&1 >/dev/null"
-    }
-    depends_on = [
-        "module.iofogctl",
-        "module.packet_edge_nodes"
-    ]
-}
+#     project_id                  = "${var.packet_project_id}"
+#     operating_system            = "${var.operating_system}"
+#     facility                    = "${var.packet_facility}"
+#     count_x86                   = "${var.count_x86}"
+#     plan_x86                    = "${var.plan_x86}"
+#     count_arm                   = "${var.count_arm}"
+#     plan_arm                    = "${var.plan_arm}"
+#     environment                 = "${var.environment}"
+# }
 
-output "packet_instance_ip_addrs" {
-  value = "${module.packet_edge_nodes.edge_nodes}"
-}
+# ##########################################################################
+# # Install and provision Agent software on packet hosts
+# ##########################################################################
+# resource "null_resource" "packet_agent_deploy" {
+#     triggers {
+#         packet_instance_ids = "${join(",", module.packet_edge_nodes.edge_nodes)}"
+#     }
+#     count = "${var.count_x86 + var.count_arm}" 
+
+#     provisioner "local-exec" {
+#         command = "export AGENT_VERSION=${var.agent_version} && iofogctl deploy agent packet_agent_${count.index} --user root --key-file ${var.ssh_key} --host ${module.packet_edge_nodes.edge_nodes[count.index]} -n ${var.iofogctl_namespace} 2>&1 >/dev/null"
+#     }
+#     depends_on = [
+#         "module.iofogctl",
+#         "module.packet_edge_nodes"
+#     ]
+# }
+
+# output "packet_instance_ip_addrs" {
+#   value = "${module.packet_edge_nodes.edge_nodes}"
+# }
+############################################################################

@@ -33,3 +33,13 @@ iofogUser_password  = "#Bugs4Fun"
 
 # iofogctl vars
 iofogctl_namespace  = "iofog"
+
+# List of edge nodes to install and configure agents on
+agent_list = 
+[{
+    name = "<AGENT_NAME>",
+    user = "<AGENT_USER>",
+    host = "<AGENT_IP>",
+    port = "<SSH_PORT>",
+    keyfile = "<PRIVATE_SSH_KEY>"
+}]
