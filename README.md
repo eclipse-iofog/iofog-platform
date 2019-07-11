@@ -26,7 +26,9 @@ You can edit the file `./my_credentials.sh` to provide your [keys](https://cloud
 ## Usage
 
 Run `./bootstrap.sh` to ensure all required dependencies are present and initialise terraform files.
-If you didn't have `gcloud` prior to running the bootstrap script, please run:
+
+If you didn't have `gcloud` prior to running the bootstrap script, please ensure `gcloud` is in your PATH.
+You can do so by running:
 ```sh
   source /usr/local/lib/google-cloud-sdk/completion.bash.inc
   source /usr/local/lib/google-cloud-sdk/path.bash.inc
