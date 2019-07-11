@@ -18,7 +18,8 @@ You can run `./bootstrap.sh` in order to download those dependencies.
 
 You will also require the following environment variables
 ```sh
-  export GOOGLE_APPLICATION_CREDENTIALS=<path-to-json> # How to generate a service account json file: https://cloud.google.com/iam/docs/creating-managing-service-account-keys
+  export GOOGLE_APPLICATION_CREDENTIALS=<path-to-json>
+  # How to generate a service account json file: https://cloud.google.com/iam/docs/creating-managing-service-account-keys
 ```
 You can edit the file `./my_credentials.sh` to provide your keys.
 
@@ -60,7 +61,8 @@ You will also need to make sure you have [uploaded an ssh key](https://support.p
 
 You will also require the following environment variables
 ```sh
-  export PACKET_AUTH_TOKEN=<YOUR_PACKET_API_KEY> # How to generate: https://support.packet.com/kb/articles/api-integrations
+  export PACKET_AUTH_TOKEN=<YOUR_PACKET_API_KEY>
+  # How to generate: https://support.packet.com/kb/articles/api-integrations
 ```
 You can edit the file `./my_credentials.sh` to provide your keys.
 
