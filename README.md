@@ -55,10 +55,12 @@ To destroy your ioFog stack, run `./destroy.sh`
 | `iofogUser_email`      | *email to use to register with controller*                   |
 | `iofogUser_password`   | *password(length >=8) for user registeration with controller*|
 | `iofogctl_namespace`   | *namespace to be used with iofogctl commands*                |
+| `agent_list`           | *list of agents to be deployed*                              |
 
 
 ## Option to deploy agent nodes on [Packet](https://www.packet.com/)
-We support deployment of agent nodes on [packet](https://www.packet.com/) provided you have an account. In situations where you do not have your own devices acting as edge nodes, you can sping a few nodes on packet to act as agents. You will need Packet token to setup packet provider on terraform. Also be aware of account limitation for example,unable to spin more than 2 arm nodes per project. 
+On top of providing a list of existing resources in the `agent_list` variable, we support deployment of agent nodes on [packet](https://www.packet.com/) provided you have an account.
+In situations where you do not have your own devices acting as edge nodes, you can sping a few nodes on packet to act as agents. You will need Packet token to setup packet provider on terraform. Also be aware of account limitation for example,unable to spin more than 2 arm nodes per project. 
 You will also need to make sure you have [uploaded an ssh key](https://support.packet.com/kb/articles/ssh-access) on your packet project that will be used by automation to add to newly created instances.
 
 You will also require the following environment variables
