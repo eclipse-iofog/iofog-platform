@@ -38,8 +38,6 @@ TERRAFORM_INSTRUCTION_URL="https://cloud.google.com/sdk/docs/downloads-versioned
 
 KUBECTL_INSTRUCTION_URL="https://kubernetes.io/docs/tasks/tools/install-kubectl/"
 
-ANSIBLE_INSTRUCTION_URL="https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#intro-installation-guide"
-
 JQ_INSTRUCTION_URL="https://github.com/stedolan/jq/wiki/Installation"
 
 help_install_gcp_sdk() {
@@ -360,89 +358,6 @@ check_kubectl() {
     
 }
 
-help_install_ansible() {
-    echoError "We could not automatically install ansible"
-    echoInfo "Please follow the installation instructions from here: ${ANSIBLE_INSTRUCTION_URL}"
-}
-
-install_ansible_success() {
-    if [[ -z "$(command -v ansible)" ]]; then
-        help_install_ansible
-        return 1
-    else
-        echoSuccess "ansible installed!"
-        ansible --version
-        echo "" 
-        return 0
-    fi
-}
-
-install_ansible() {
-    echoInfo "====> Installing ansible..."
-    if [[ "$1" == "windows" ]]; then
-        help_install_ansible
-        return 1
-    fi
-    if [[ -z "$(command -v pip3)" ]] && [[ -z "$(command -v pip)" ]]; then
-    {
-        (python3 <(wget -O- https://bootstrap.pypa.io/get-pip.py 2>/dev/null)) > /dev/null
-    } || {
-        (python <(wget -O- https://bootstrap.pypa.io/get-pip.py 2>/dev/null)) > /dev/null
-    }
-    fi
-    {
-        pip install --prefix /usr/local ansible
-    } || {
-        pip3 install --prefix /usr/local ansible
-    }
-    if [[ -z "$(command -v ansible)" ]]; then
-        help_install_ansible
-        return 1
-    else
-        echoSuccess "ansible installed!"
-        ansible --version
-        echo "" 
-        return 0
-    fi
-}
-
-check_ansible() {
-    {
-        if ! [[ -x "$(command -v ansible)" ]]; then
-            if [[ "$OSTYPE" == "linux-gnu" ]]; then
-                install_ansible "linux"
-            elif [[ "$OSTYPE" == "darwin"* ]]; then
-                # Mac OSX
-                install_ansible "darwin"
-            elif [[ "$OSTYPE" == "cygwin" ]]; then
-                # POSIX compatibility layer and Linux environment emulation for Windows
-                install_ansible "windows"
-            elif [[ "$OSTYPE" == "msys" ]]; then
-                # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
-                install_ansible "windows"
-            elif [[ "$OSTYPE" == "win32" ]]; then
-                # I'm not sure this can happen.
-                install_ansible "windows"
-            elif [[ "$OSTYPE" == "freebsd"* ]]; then
-                install_ansible "linux"
-            else
-                help_install_ansible
-                return 1
-            fi
-            return $?
-        else
-            echoSuccess "ansible found in path!"
-            ansible --version    
-            echo ""
-            return 0
-        fi
-    } || {
-        help_install_ansible
-        return 1
-    }
-}
-
-
 # JQ
 
 help_install_jq() {
@@ -524,7 +439,7 @@ check_jq() {
             return 0
         fi
     } || {
-        help_install_ansible
+        help_install_jq
         return 1
     }
 }
@@ -554,8 +469,6 @@ check_gcp
 gcp_success=$?
 check_tf
 tf_success=$?
-check_ansible
-ansible_success=$?
 check_kubectl
 kubectl_success=$?
 check_iofogctl
@@ -580,13 +493,6 @@ if [[ $tf_success -ne 0 ]]; then
     success=1
 else
     echoSuccess " ✔️  Terraform"
-fi
-if [[ $ansible_success -ne 0 ]]; then
-    echoError " ✖️ Ansible" 
-    help_install_ansible
-    success=1
-else
-    echoSuccess " ✔️  Ansible"
 fi
 if [[ $kubectl_success -ne 0  ]]; then
     echoError " ✖️ Kubectl" 

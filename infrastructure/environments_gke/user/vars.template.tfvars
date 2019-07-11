@@ -20,7 +20,7 @@ iofogUser_surname   = "edgeworx"
 iofogUser_email     = "user@domain.com"
 iofogUser_password  = "#Bugs4Fun"
 
-# iofogctl vars
+# iofogctl vars (https://github.com/eclipse-iofog/iofogctl)
 iofogctl_namespace  = "iofog"
 
 # List of edge nodes to install and configure agents on
@@ -28,11 +28,11 @@ agent_list =
 [
     # Agent example
     # {
-    #     name = "<AGENT_NAME>",
-    #     user = "<AGENT_USER>",
-    #     host = "<AGENT_IP>",
-    #     port = "<SSH_PORT>",
-    #     keyfile = "<PRIVATE_SSH_KEY>"
+    #     name = "<AGENT_NAME>", # Name used to register the agent with the controller
+    #     user = "<AGENT_USER>", # User name for ssh connection into the agent
+    #     host = "<AGENT_IP>", # host for ssh connection into the agent
+    #     port = "<SSH_PORT>", # port for ssh connection into the agent
+    #     keyfile = "<PRIVATE_SSH_KEY>" # Absolute path to the private key used to ssh into the agent
     # },
 ]
 

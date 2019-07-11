@@ -7,12 +7,10 @@ cloud infrastructure provider.
 
 # Requirements
 
-* GCloud SDK 
-* Terraform (v0.11.x)
-* ansible
-* gcloud
-* kubectl
-* iofogctl
+* [GCloud SDK](https://cloud.google.com/sdk/) 
+* [Terraform](https://www.terraform.io/) (v0.11.x)
+* [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/)
+* [iofogctl] (https://github.com/eclipse-iofog/iofogctl)
 
 You can run `./bootstrap.sh` in order to download those dependencies.
 
