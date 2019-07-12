@@ -39,7 +39,7 @@ fi
 
 
 # Export user credentials
-./set_vars.sh
+. ./scripts/set_vars.sh
 
 prettyHeader "Destroying GKE ioFog stack..."
 
