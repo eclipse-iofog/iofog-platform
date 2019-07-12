@@ -101,6 +101,7 @@ jobs:
         workingDirectory: $(Agent.TempDirectory)
 
       - script: |
+          terraform force-unlock 1562955680476904 -force
           terraform init
         displayName: 'Init terraform'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
