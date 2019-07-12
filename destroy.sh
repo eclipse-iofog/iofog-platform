@@ -37,14 +37,9 @@ if [[ "$1" == "--only-clean-state" ]]; then
   exit 0
 fi
 
-
-# Export user credentials
-. ./my_credentials.env
-
 prettyHeader "Destroying GKE ioFog stack..."
 
 echoInfo "Using ./my_vars.tfvars as variable file"
-echoInfo "Using ./my_credentials.env to export credentials"
 echo ""
 
 displayError() {

@@ -1,3 +1,4 @@
+variable "google_application_credentials"           {}
 variable "project_id"           {}
 variable "environment"          {}
 variable "gcp_region"           {}
@@ -11,29 +12,6 @@ variable "kubelet_image"        {}
 variable "operator_image"       {}
 variable "ssh_key"              {
     default = "/tmp/NotAFile"
-}
-# Packet Vars
-variable "packet_project_id"    {
-    default = "invalidProjectId"
-}
-variable "operating_system"     {
-    default =  "ubuntu_16_04"
-}
-variable "count_x86"            {
-    default = "0"
-}
-variable "plan_x86"             {
-    default = "c1.small.x86"
-}
-variable "count_arm"            {
-    default = "0"
-}
-variable "plan_arm"             {
-    default = "c2.large.arm"
-}
-variable "packet_facility"      {
-    type = "list"
-    default = ["sjc1", "ewr1"]
 }
 # iofog user vars
 variable "iofogUser_name"       {}
@@ -55,6 +33,7 @@ variable "agent_list"      {
 
 provider "google" {
     version                     = "~> 2.7.0"
+    credentials                 = "${file("${var.google_application_credentials}")}"
     project                     = "${var.project_id}"
     region                      = "${var.gcp_region}"
 }
@@ -62,6 +41,7 @@ provider "google" {
 provider "google-beta" {
     version                     = "~> 2.7.0"
     region                      = "${var.gcp_region}"
+    credentials                 = "${file("${var.google_application_credentials}")}"
 }
 
 #############################################################

@@ -27,14 +27,9 @@ if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
   usage
 fi
 
-
-# Export user credentials
-. ./my_credentials.env
-
 prettyHeader "Deploying GKE ioFog stack..."
 
 echoInfo "Using ./my_vars.tfvars as variable file"
-echoInfo "Using ./my_credentials.env to export credentials"
 
 TERRAFORM_FOLDER="./infrastructure/environments_gke/user"
 

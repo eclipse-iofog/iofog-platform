@@ -1,6 +1,9 @@
 #############################################################
 # Spin up packet resources as edge nodes
 #############################################################
+variable "packet_auth_token"           {
+    default = ""
+}
 variable "project_id"         {}
 variable "environment"        {}
 variable "operating_system"   {}
@@ -14,6 +17,7 @@ variable "facility"           {
 
 provider "packet" {
     version                     = "~> 2.2"
+    auth_token                  = "${var.packet_auth_token}"
 }
 
 resource "packet_device" "x86_node" {

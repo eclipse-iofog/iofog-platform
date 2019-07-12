@@ -40,5 +40,5 @@ kubectl get svc -n iofog
 echo ""
 
 prettyTitle "Iofogctl get all"
-NAMESPACE=$(cat ./my_vars.tfvars | grep 'iofogctl_namespace' | awk '{print $3}' | tr -d \")
+NAMESPACE=$(cat ./my_vars.tfvars | grep 'iofogctl_namespace' | tr -d ' ' | awk -F '=' '{print $2}' | tr -d \")
 iofogctl get all -n $NAMESPACE
