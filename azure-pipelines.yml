@@ -33,8 +33,7 @@ jobs:
           serviceConnection: 'Pipelines'
           method: 'POST'
           urlSuffix: '/edgeworx/_apis/build/builds?api-version=5.0'
-          body: "{\"Definition\":{\"id\":\"21\"}}"
-          waitForCompletion: 'true'
+          body: "{\"Definition\":{\"id\":\"24\"}}"
 
   - job: Platform
     pool:
