@@ -1,3 +1,8 @@
+# Cloud service credentials
+package_cloud_auth_token=""         # If you need to download private packages from packagecloud
+packet_auth_token=""                # If you want to deploy agents on Packet
+path_to_gcp_service_account_file="" # Path to JSON file
+
 # Dev variables
 project_id          = "<your-gcp-project-id>"
 environment         = "<your-environment-name>" # Pick any name you like. Can only contain lowercase letters, numbers and hyphens and must start with a letter.
@@ -36,14 +41,13 @@ agent_list =
     # },
 ]
 
-# Uncomment this out if you want to use packet nodes as agents
 # Packet sample config used to setup and arm or x86 edge nodes to your controller
-# packet_project_id   = "<your-packet-project-id>"
-# operating_system    = "ubuntu_16_04"
-# packet_facility     = ["sjc1", "ewr1"]             
-# count_x86           = "1"
-# plan_x86            = "c1.small.x86"
-# count_arm           = "0"
-# plan_arm            = "c2.large.arm"
-# Used by iofogctl for agent configuration on packet
-# ssh_key             = "~/.ssh/id_ecdsa"
+packet_project_id   = "<your-packet-project-id>"
+operating_system    = "ubuntu_16_04"
+packet_facility     = ["sjc1", "ewr1"]             
+count_x86           = "1"
+plan_x86            = "c1.small.x86"
+count_arm           = "0"
+plan_arm            = "c2.large.arm"
+Used by iofogctl for agent configuration on packet
+ssh_key             = "~/.ssh/id_ecdsa"

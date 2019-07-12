@@ -29,12 +29,12 @@ fi
 
 
 # Export user credentials
-. ./my_credentials.env
+./set_vars.sh
 
 prettyHeader "Deploying GKE ioFog stack..."
 
 echoInfo "Using ./my_vars.tfvars as variable file"
-echoInfo "Using ./my_credentials.env to export credentials"
+echoInfo "Using ./set_vars.sh to export credentials"
 
 TERRAFORM_FOLDER="./infrastructure/environments_gke/user"
 
@@ -42,9 +42,6 @@ displayError() {
   echoError "Something went wrong with your terraform deployment. Please find more information in the logs above."
   exit 1
 }
-
-# Copy user terraform vars
-cp ./my_vars.tfvars "$TERRAFORM_FOLDER/user_vars.tfvars"
 
 # Generate main.tf file
 . ./scripts/generate_terraform_main.sh

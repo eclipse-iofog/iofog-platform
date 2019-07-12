@@ -39,12 +39,12 @@ fi
 
 
 # Export user credentials
-. ./my_credentials.env
+./set_vars.sh
 
 prettyHeader "Destroying GKE ioFog stack..."
 
 echoInfo "Using ./my_vars.tfvars as variable file"
-echoInfo "Using ./my_credentials.env to export credentials"
+echoInfo "Using ./set_vars.sh to export credentials"
 echo ""
 
 displayError() {

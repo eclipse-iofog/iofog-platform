@@ -5,10 +5,18 @@ variable "gcp_service_account"  {}
 variable "controller_ip"        {
     default = ""
 }
-variable "controller_image"     {}
-variable "connector_image"      {}
-variable "kubelet_image"        {}
-variable "operator_image"       {}
+variable "controller_image"     {
+    default = ""
+}
+variable "connector_image"      {
+    default = ""
+}
+variable "kubelet_image"        {
+    default = ""
+}
+variable "operator_image"       {
+    default = ""
+}
 variable "ssh_key"              {
     default = "/tmp/NotAFile"
 }
