@@ -107,7 +107,7 @@ jobs:
 
       - script: |
           export PACKET_AUTH_TOKEN=$(cat ../packet.token)
-          terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
+          terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve --force-unlock 1562955680476904
         displayName: 'Destroy existing infrastructure'
         continueOnError: 'true'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
