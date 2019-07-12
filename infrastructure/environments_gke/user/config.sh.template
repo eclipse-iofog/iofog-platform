@@ -1,10 +1,6 @@
 #!/bin/sh
 
 # Cloud service credentials
-
-# How to generate: https://support.packet.com/kb/articles/api-integrations
-packet_auth_token="" # If you want to deploy agents on Packet
-
 # How to generate a gcloud service account json file: https://cloud.google.com/iam/docs/creating-managing-service-account-keys
 path_to_gcp_service_account_file="" # Path to JSON file
 
@@ -47,6 +43,7 @@ agent_list='[
 
 # Uncomment this out if you want to use packet nodes as agents
 # Packet sample config used to setup and arm or x86 edge nodes to your controller
+# packet_auth_token="" # How to generate: https://support.packet.com/kb/articles/api-integrations
 # packet_project_id="<your-packet-project-id>"
 # operating_system="ubuntu_16_04"
 # packet_facility=["sjc1", "ewr1"]             

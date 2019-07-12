@@ -14,13 +14,6 @@ cloud infrastructure provider.
 
 `./bootstrap.sh` will download those dependencies if they are missing, and will generate the user variable file `./config.sh`
 
-You will also require the following environment variables
-```sh
-  export GOOGLE_APPLICATION_CREDENTIALS=<path-to-json>
-  # How to generate a service account json file: https://cloud.google.com/iam/docs/creating-managing-service-account-keys
-```
-After running bootstrap, you can edit the file `./config.sh` to provide your [keys](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
-
 ## Usage
 
 Run `./bootstrap.sh` to ensure all required dependencies are present and initialise the user variable file `./config.sh`.
@@ -39,6 +32,7 @@ To destroy your ioFog stack, run `./destroy.sh`
 
 | Variables              | Description                                                  |
 | -----------------------|:------------------------------------------------------------:|
+| `path_to_gcp_service_account_file`           | *Path to [gcloud service account json key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys)*                         |
 | `project_id`           | *id of your google platform project*                         |
 | `environment`          | *unique name for your environment*                           |
 | `gcp_region`           | *region to spin up the resources*                            |
@@ -73,19 +67,11 @@ On top of providing a list of existing resources in the `agent_list` variable, w
 In situations where you do not have your own devices acting as edge nodes, you can sping a few nodes on packet to act as agents. You will need Packet token to setup packet provider on terraform. Also be aware of account limitation for example,unable to spin more than 2 arm nodes per project. 
 You will also need to make sure you have [uploaded an ssh key](https://support.packet.com/kb/articles/ssh-access) on your packet project that will be used by automation to add to newly created instances.
 
-You will also require the following environment variables
-```sh
-  export PACKET_AUTH_TOKEN=<YOUR_PACKET_API_KEY>
-  # How to generate: https://support.packet.com/kb/articles/api-integrations
-```
-After running bootstrap, you can edit the file `./config.sh` to provide your [keys](https://support.packet.com/kb/articles/api-integrations).
-
-Warning: We will instruct terraform to load packet agents only if the PACKET_AUTH_TOKEN environment variable is set
-
 Additional packet variables:
 
 | Variables              | Description                                                  |
 | -----------------------|:------------------------------------------------------------:|
+| `packet_auth_token`    | *packet [auth token](https://support.packet.com/kb/articles/api-integrations)*                 |
 | `packet_project_id`    | *packet project id to spin agents on packet*                 |
 | `operating_system`     | *operating system for edge nodes on packet*                  |
 | `packet_facility`      | *facilities to use to drop agents*                           |

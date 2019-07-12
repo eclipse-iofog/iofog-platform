@@ -122,3 +122,42 @@ module "iofogctl" {
     agent_list                  = "${var.agent_list}"
     template_path               = "${file("../../environments_gke/iofogctl_inventory.tpl")}"
 }
+# ##########################################################################
+# # Spin up edge nodes on Packet
+# ##########################################################################
+module "packet_edge_nodes" {
+    source  = "../../modules/packet_edge_nodes"
+
+    project_id                  = "${var.packet_project_id}"
+    operating_system            = "${var.operating_system}"
+    facility                    = "${var.packet_facility}"
+    count_x86                   = "${var.count_x86}"
+    plan_x86                    = "${var.plan_x86}"
+    count_arm                   = "${var.count_arm}"
+    plan_arm                    = "${var.plan_arm}"
+    environment                 = "${var.environment}"
+}
+
+# ##########################################################################
+# # Install and provision Agent software on packet hosts
+# ##########################################################################
+resource "null_resource" "packet_agent_deploy" {
+    count = "${var.count_x86 + var.count_arm}" 
+
+    triggers {
+        packet_instance_ids = "${join(",", module.packet_edge_nodes.edge_nodes)}"
+    }
+
+    provisioner "local-exec" {
+        command = "export AGENT_VERSION=${var.agent_version} && iofogctl deploy agent packet_agent_${count.index} --user root --key-file ${var.ssh_key} --host ${module.packet_edge_nodes.edge_nodes[count.index]} -n ${var.iofogctl_namespace} 2>&1 >/dev/null"
+    }
+    depends_on = [
+        "module.iofogctl",
+        "module.packet_edge_nodes"
+    ]
+}
+
+output "packet_instance_ip_addrs" {
+  value = "${module.packet_edge_nodes.edge_nodes}"
+}
+############################################################################

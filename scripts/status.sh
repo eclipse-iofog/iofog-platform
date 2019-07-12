@@ -25,7 +25,7 @@ fi
 
 
 # Export user credentials
-. ./set_vars.sh
+. ./scripts/set_vars.sh
 
 
 prettyHeader "GKE ioFog stack status"
