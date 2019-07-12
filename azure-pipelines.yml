@@ -107,7 +107,6 @@ jobs:
 
       - script: |
           export PACKET_AUTH_TOKEN=$(cat ../packet.token)
-          terraform force-unlock -force 1562955680476904
           terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
         displayName: 'Destroy existing infrastructure'
         continueOnError: 'true'
@@ -116,7 +115,6 @@ jobs:
 
       - script: |
           export PACKET_AUTH_TOKEN=$(cat ../packet.token)
-          terraform force-unlock -force 1562955680476904
           terraform apply -var-file=$(Agent.TempDirectory)/develop.tfvars \
                           -var 'controller_image=$(controller_image)' \
                           -var 'connector_image=$(connector_image)' \
