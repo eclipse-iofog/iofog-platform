@@ -116,6 +116,8 @@ jobs:
         # condition: and(always(), eq(variables['Build.Reason'], 'Schedule'))
 
       - script: |
+          export PACKET_AUTH_TOKEN=$(cat ../packet.token)
+
           terraform apply -var-file=$(Agent.TempDirectory)/develop.tfvars \
                           -var 'controller_image=$(controller_image)' \
                           -var 'connector_image=$(connector_image)' \
