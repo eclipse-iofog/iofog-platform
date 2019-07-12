@@ -68,4 +68,4 @@ cd "$TERRAFORM_FOLDER"
 echo ""
 echoSuccess "You are done !"
 cd - > /dev/null
-. ./status.sh
+. ./scripts/status.sh
