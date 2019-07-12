@@ -60,11 +60,6 @@ jobs:
         inputs:
           secureFile: develop.tfvars
 
-      - task: DownloadSecureFile@1
-        displayName: 'Download secure file - healthcare microservice app config'
-        inputs:
-          secureFile: 'develop-msv-config.yaml'
-
       - script: |
           echo "deb https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
           curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
@@ -81,7 +76,8 @@ jobs:
 
       - script: |
           curl -s https://$(iofogctlPackageCloudToken):@packagecloud.io/install/repositories/iofog/iofogctl-snapshots/script.deb.sh | sudo bash
-          sudo apt-get install iofogctl=1.0.0-b2143
+          # install iofogctl version set in pipeline variable
+          sudo apt-get install iofogctl=$(iofogctl_version)
           iofogctl version
         displayName: 'Install iofogctl'
 
