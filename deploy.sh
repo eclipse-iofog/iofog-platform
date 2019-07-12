@@ -33,7 +33,7 @@ fi
 
 prettyHeader "Deploying GKE ioFog stack..."
 
-echoInfo "Using ./my_vars.tfvars as variable file"
+echoInfo "Using ./config.sh as variable file"
 echoInfo "Using ./set_vars.sh to export credentials"
 
 TERRAFORM_FOLDER="./infrastructure/environments_gke/user"

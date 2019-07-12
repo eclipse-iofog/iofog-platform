@@ -478,7 +478,7 @@ jq_success=$?
 
 if [[ $1 != "--verify " ]]; then
     echoInfo "Setting up Terraform files..."
-    cp ./infrastructure/environments_gke/user/config.sh ./config.sh
+    cp ./infrastructure/environments_gke/user/config.sh.template ./config.sh
 else
     echo ""
 fi

@@ -42,3 +42,15 @@ iofogctl_namespace="iofog"
 # You will need to export the agent snapshot package cloud token as env var(PACKAGE_CLOUD_CREDS) to access the dev repo
 agent_repo="dev" 
 agent_version="1.1.0-b2002"
+
+# List of edge nodes to install and configure agents on
+agent_list='[
+    # Agent example
+    # {
+    #     name = "<AGENT_NAME>", # Name used to register the agent with the controller
+    #     user = "<AGENT_USER>", # User name for ssh connection into the resource
+    #     host = "<AGENT_IP>", # host for ssh connection into the resource
+    #     port = "<SSH_PORT>", # port for ssh connection into the resource
+    #     keyfile = "<PRIVATE_SSH_KEY>" # Absolute path to the private key used to ssh into the resource
+    # },
+]'
