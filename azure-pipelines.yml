@@ -145,7 +145,7 @@ jobs:
           AGENT_HOST=$(yq r iofogctl_inventory.yaml 'agents[0].host')
           AGENT_PORT=$(yq r iofogctl_inventory.yaml 'agents[0].port')
           CONTROLLER_EMAIL=$(yq r iofogctl_inventory.yaml 'controllers[0].iofoguser.email')
-          CONTROLLER_PAASWORD=$(yq r iofogctl_inventory.yaml 'controllers[0].iofoguser.password')
+          CONTROLLER_PASSWORD=$(yq r iofogctl_inventory.yaml 'controllers[0].iofoguser.password')
 
           gcloud auth configure-docker --quiet
           docker run --name test-runner \
