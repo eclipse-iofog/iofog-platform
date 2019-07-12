@@ -76,6 +76,8 @@ jobs:
 
           # set env var GOOGLE_APPLICATION_CREDENTIALS for terraform to pick up for GCP authentication
           echo "##vso[task.setvariable variable=GOOGLE_APPLICATION_CREDENTIALS]$(Agent.TempDirectory)/azure-gcp.json"
+
+          echo "##vso[task.setvariable variable=PACKET_AUTH_TOKEN]$(cat $(Agent.TempDirectory)/packet.token)"
         displayName: 'Install and init gcloud'
 
       - script: |
@@ -109,6 +111,7 @@ jobs:
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
 
       - script: |
+          export PACKET_AUTH_TOKEN=$(cat ../packet.token)
           terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
         displayName: 'Destroy existing infrastructure'
         continueOnError: 'true'
@@ -116,6 +119,7 @@ jobs:
         # condition: and(always(), eq(variables['Build.Reason'], 'Schedule'))
 
       - script: |
+          export PACKET_AUTH_TOKEN=$(cat ../packet.token)
           terraform apply -var-file=$(Agent.TempDirectory)/develop.tfvars \
                           -var 'controller_image=$(controller_image)' \
                           -var 'connector_image=$(connector_image)' \
@@ -141,7 +145,7 @@ jobs:
           AGENT_HOST=$(yq r iofogctl_inventory.yaml 'agents[0].host')
           AGENT_PORT=$(yq r iofogctl_inventory.yaml 'agents[0].port')
           CONTROLLER_EMAIL=$(yq r iofogctl_inventory.yaml 'controllers[0].iofoguser.email')
-          CONTROLLER_PAASWORD=$(yq r iofogctl_inventory.yaml 'controllers[0].iofoguser.password')
+          CONTROLLER_PASSWORD=$(yq r iofogctl_inventory.yaml 'controllers[0].iofoguser.password')
 
           gcloud auth configure-docker --quiet
           docker run --name test-runner \
