@@ -101,14 +101,13 @@ jobs:
         workingDirectory: $(Agent.TempDirectory)
 
       - script: |
-          terraform force-unlock 1562955680476904 -force
           terraform init
         displayName: 'Init terraform'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
 
       - script: |
           export PACKET_AUTH_TOKEN=$(cat ../packet.token)
-          terraform force-unlock 1562955680476904 -force
+          terraform force-unlock -force 1562955680476904
           terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
         displayName: 'Destroy existing infrastructure'
         continueOnError: 'true'
@@ -117,7 +116,7 @@ jobs:
 
       - script: |
           export PACKET_AUTH_TOKEN=$(cat ../packet.token)
-          terraform force-unlock 1562955680476904 -force
+          terraform force-unlock -force 1562955680476904
           terraform apply -var-file=$(Agent.TempDirectory)/develop.tfvars \
                           -var 'controller_image=$(controller_image)' \
                           -var 'connector_image=$(connector_image)' \
