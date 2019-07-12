@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. config.sh
+. ../config.sh
 
 TERRAFORM_FOLDER="./infrastructure/environments_gke/user"
 VARS_FILE="$TERRAFORM_FOLDER"/user_vars.tfvars

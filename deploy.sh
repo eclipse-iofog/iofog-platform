@@ -28,13 +28,9 @@ if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
 fi
 
 
-# Export user credentials
-./set_vars.sh
-
 prettyHeader "Deploying GKE ioFog stack..."
 
 echoInfo "Using ./config.sh as variable file"
-echoInfo "Using ./set_vars.sh to export credentials"
 
 TERRAFORM_FOLDER="./infrastructure/environments_gke/user"
 
@@ -42,6 +38,9 @@ displayError() {
   echoError "Something went wrong with your terraform deployment. Please find more information in the logs above."
   exit 1
 }
+
+# Create var file
+. ./scripts/set_vars.sh
 
 # Generate main.tf file
 . ./scripts/generate_terraform_main.sh

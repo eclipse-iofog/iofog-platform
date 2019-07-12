@@ -44,7 +44,6 @@ fi
 prettyHeader "Destroying GKE ioFog stack..."
 
 echoInfo "Using ./config.sh as variable file"
-echoInfo "Using ./set_vars.sh to export credentials"
 echo ""
 
 displayError() {
@@ -68,8 +67,8 @@ disconnectIofogctl() {
   }
 }
 
-# Copy user terraform vars
-cp ./my_vars.tfvars ./infrastructure/environments_gke/user/user_vars.tfvars
+# Create var file
+. ./scripts/set_vars.sh
 
 # Generate main.tf file
 . ./scripts/generate_terraform_main.sh
