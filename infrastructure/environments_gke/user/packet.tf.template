@@ -35,6 +35,6 @@ resource "null_resource" "packet_agent_deploy" {
 }
 
 output "packet_instance_ip_addrs" {
-  value = "${var.count_x86 + var.count_arm} > 0 ? ${module.packet_edge_nodes.edge_nodes} : \"\""
+  value = "${module.packet_edge_nodes.edge_nodes}"
 }
 ############################################################################
