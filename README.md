@@ -55,6 +55,18 @@ To destroy your ioFog stack, run `./destroy.sh`
 | `iofogctl_namespace`   | *namespace to be used with iofogctl commands*                |
 | `agent_list`           | *list of agents to be deployed*                              |
 
+## Agent list
+The variable `agent_list` contains a list of remote hardware on top of which you would like us to deploy an ioFog agent, connect it to the GKE hosted controller, and include it inside our Kubernetes network.
+To do so we require the following information (per remote resource):
+```
+ {
+     name = "<AGENT_NAME>", # Name used to register the agent with the controller
+     user = "<AGENT_USER>", # User name for ssh connection into the resource
+     host = "<AGENT_IP>", # host for ssh connection into the resource
+     port = "<SSH_PORT>", # port for ssh connection into the resource
+     keyfile = "<PRIVATE_SSH_KEY>" # Absolute path to the private key used to ssh into the resource
+ }
+```
 
 ## Option to deploy agent nodes on [Packet](https://www.packet.com/)
 On top of providing a list of existing resources in the `agent_list` variable, we support deployment of agent nodes on [packet](https://www.packet.com/) provided you have an account.

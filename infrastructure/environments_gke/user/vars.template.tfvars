@@ -29,10 +29,10 @@ agent_list =
     # Agent example
     # {
     #     name = "<AGENT_NAME>", # Name used to register the agent with the controller
-    #     user = "<AGENT_USER>", # User name for ssh connection into the agent
-    #     host = "<AGENT_IP>", # host for ssh connection into the agent
-    #     port = "<SSH_PORT>", # port for ssh connection into the agent
-    #     keyfile = "<PRIVATE_SSH_KEY>" # Absolute path to the private key used to ssh into the agent
+    #     user = "<AGENT_USER>", # User name for ssh connection into the resource
+    #     host = "<AGENT_IP>", # host for ssh connection into the resource
+    #     port = "<SSH_PORT>", # port for ssh connection into the resource
+    #     keyfile = "<PRIVATE_SSH_KEY>" # Absolute path to the private key used to ssh into the resource
     # },
 ]
 
