@@ -67,6 +67,8 @@ On top of providing a list of existing resources in the `agent_list` variable, w
 In situations where you do not have your own devices acting as edge nodes, you can sping a few nodes on packet to act as agents. You will need Packet token to setup packet provider on terraform. Also be aware of account limitation for example,unable to spin more than 2 arm nodes per project. 
 You will also need to make sure you have [uploaded an ssh key](https://support.packet.com/kb/articles/ssh-access) on your packet project that will be used by automation to add to newly created instances.
 
+Warning: We will look for the `packet_auth_token` variable. If it is defined, we will try to spin up Packet nodes according to the other variables. If it is empty or commented, we will not load anything Packet related.
+
 Additional variables:
 
 | Variables              | Description                                                  |
