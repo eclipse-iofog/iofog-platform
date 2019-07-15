@@ -153,6 +153,7 @@ jobs:
           sleep 60
           DOCKER_CONTAINER=$(docker ps | grep test-runner | awk '{print $1}')
           docker cp ${DOCKER_CONTAINER}:/test-runner/tests/TEST-RESULTS.xml .
+          docker stop ${DOCKER_CONTAINER}
         workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop'
         displayName: 'run tests'
 
