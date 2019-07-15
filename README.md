@@ -18,7 +18,11 @@ cloud infrastructure provider.
 
 Run `./bootstrap.sh` to ensure all required dependencies are present and initialise terraform variable file `./my_vars.tfvars`.
 
-If you didn't have `gcloud` prior to running the bootstrap script, please ensure `gcloud` is in your PATH.
+If you didn't have `gcloud` prior to running the bootstrap script:
+
+* Authenticate with the gcloud sdk api, you will be prompted at the end of the bootstrap script.
+
+* Please ensure `gcloud` is in your PATH.
 You can do so by running:
 ```sh
   source /usr/local/lib/google-cloud-sdk/completion.bash.inc
