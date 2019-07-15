@@ -445,13 +445,13 @@ check_jq() {
 }
 
 display_gcp_final_instructions() {
+    prettyTitle "Gcloud authentication:"
+    gcloud auth login
     prettyTitle "Next Steps"
     echo "Please run the following commands and add them in your shell profile file to make gcloud available in the PATH:"
     echo "source $LIB_LOCATION/google-cloud-sdk/completion.bash.inc"
     echo "source $LIB_LOCATION/google-cloud-sdk/path.bash.inc"
     echo ""
-    prettyTitle "Gcloud authentication:"
-    gcloud auth login
 
 }
 
