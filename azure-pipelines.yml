@@ -152,6 +152,7 @@ jobs:
               -e CONTROLLER_PASSWORD="${CONTROLLER_PASSWORD}" \
               -e AGENTS="${AGENT_USER}@${AGENT_HOST}:${AGENT_PORT}" \
               gcr.io/focal-freedom-236620/test-runner:latest
+          ls "$(Agent.TempDirectory)/test-results"
         workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop'
         displayName: 'run tests'
 
