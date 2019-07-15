@@ -524,5 +524,6 @@ if [[ $gcp_success -ne 0  ]]; then
 else
     echoSuccess " ✔️  Gcloud"
     display_gcp_final_instructions
+    echoSuccess "Bootstrap completed!"
 fi
 exit $success
