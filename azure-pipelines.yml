@@ -134,6 +134,7 @@ jobs:
 
       - script: |
           cat iofogctl_inventory.yaml
+          mkdir "$(Agent.TempDirectory)/test-results"
 
           CONTROLLER_IP=$(sed -n 's/.*kubecontrollerip: "\([0-9.]*\)"/\1/p' iofogctl_inventory.yaml)
           AGENT_USER=$(yq r iofogctl_inventory.yaml 'agents[0].user')
@@ -143,17 +144,14 @@ jobs:
           CONTROLLER_PASSWORD=$(yq r iofogctl_inventory.yaml 'controllers[0].iofoguser.password')
 
           gcloud auth configure-docker --quiet
-          docker run -d --name test-runner \
+          docker run --name test-runner \
               -v "$(Agent.TempDirectory)/azure_ssh_key":/root/.ssh/id_rsa \
+              -v "$(Agent.TempDirectory)/test-results":/root/test-results \
               -e CONTROLLER="${CONTROLLER_IP}:51121" \
               -e CONTROLLER_EMAIL="${CONTROLLER_EMAIL}" \
               -e CONTROLLER_PASSWORD="${CONTROLLER_PASSWORD}" \
               -e AGENTS="${AGENT_USER}@${AGENT_HOST}:${AGENT_PORT}" \
               gcr.io/focal-freedom-236620/test-runner:latest
-          sleep 60
-          DOCKER_CONTAINER=$(docker ps | grep test-runner | awk '{print $1}')
-          docker cp ${DOCKER_CONTAINER}:/test-runner/tests/TEST-RESULTS.xml .
-          docker stop ${DOCKER_CONTAINER}
         workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop'
         displayName: 'run tests'
 
