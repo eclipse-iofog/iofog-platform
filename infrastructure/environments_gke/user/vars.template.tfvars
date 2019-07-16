@@ -12,10 +12,10 @@ gcp_service_account     = "<gcp-service-account-name>" # Something in the vein o
 controller_ip           = "" # Static ip for loadbalancer, eompty is fine
     
 # ioFog images  
-controller_image        = "iofog/controller:1.1.1"
-connector_image         = "iofog/connector:1.1.0"
-operator_image          = "iofog/iofog-operator:1.0.0"
-kubelet_image           = "iofog/iofog-kubelet:1.0.0"
+controller_image        = "iofog/controller:latest"
+connector_image         = "iofog/connector:latest"
+operator_image          = "iofog/iofog-operator:latest"
+kubelet_image           = "iofog/iofog-kubelet:latest"
     
     
 # ioFog user vars (u    sed to configure controller and agents)
