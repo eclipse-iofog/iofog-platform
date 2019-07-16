@@ -160,6 +160,6 @@ jobs:
       - task: PublishTestResults@2
         inputs:
           testResultsFormat: 'JUnit'
-          testResultsFiles: '**/TEST-*.xml'
-          searchFolder: '$(System.DefaultWorkingDirectory)'
+          testResultsFiles: 'TEST-*.xml'
+          searchFolder: '$(Agent.TempDirectory)/test-results'
         displayName: 'Publish Test Results'
