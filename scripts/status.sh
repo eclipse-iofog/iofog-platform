@@ -23,11 +23,6 @@ if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
   usage
 fi
 
-
-# Export user credentials
-. ./my_credentials.env
-
-
 prettyHeader "GKE ioFog stack status"
 
 prettyTitle "Pods"
