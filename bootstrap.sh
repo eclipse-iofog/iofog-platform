@@ -489,8 +489,15 @@ display_gcp_final_instructions() {
     # assume Zsh
         echo "source $LIB_LOCATION/google-cloud-sdk/completion.zsh.inc"
         echo "source $LIB_LOCATION/google-cloud-sdk/path.zsh.inc"
-    else
+    elif [ -n "`$SHELL -c 'echo $BASH_VERSION'`" ]; then
     # assume Bash
+        echo "source $LIB_LOCATION/google-cloud-sdk/completion.bash.inc"
+        echo "source $LIB_LOCATION/google-cloud-sdk/path.bash.inc"
+    elif [ -n "`$SHELL -c 'echo $FISH_VERSION'`" ]; then
+    # assume Fish
+        echo "source $LIB_LOCATION/google-cloud-sdk/path.fish.inc"
+    else
+    # assume unknown shell, defaulting to bash
         echo "source $LIB_LOCATION/google-cloud-sdk/completion.bash.inc"
         echo "source $LIB_LOCATION/google-cloud-sdk/path.bash.inc"
     fi
