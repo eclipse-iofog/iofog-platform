@@ -37,7 +37,7 @@ jobs:
 
   - job: Platform
     pool:
-      vmImage: 'Ubuntu-16.04'
+      name: 'GCP Ubuntu 1604'
 
     steps:
       - task: DownloadSecureFile@1
