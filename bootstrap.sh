@@ -485,8 +485,15 @@ display_gcp_final_instructions() {
     fi
     prettyTitle "Next Steps"
     echo "Please run the following commands and add them in your shell profile file to make gcloud available in the PATH:"
-    echo "source $LIB_LOCATION/google-cloud-sdk/completion.bash.inc"
-    echo "source $LIB_LOCATION/google-cloud-sdk/path.bash.inc"
+    if [ -n "`$SHELL -c 'echo $ZSH_VERSION'`" ]; then
+    # assume Zsh
+        echo "source $LIB_LOCATION/google-cloud-sdk/completion.zsh.inc"
+        echo "source $LIB_LOCATION/google-cloud-sdk/path.zsh.inc"
+    else
+    # assume Bash
+        echo "source $LIB_LOCATION/google-cloud-sdk/completion.bash.inc"
+        echo "source $LIB_LOCATION/google-cloud-sdk/path.bash.inc"
+    fi
     echo ""
 
 }
