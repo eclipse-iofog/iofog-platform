@@ -15,8 +15,10 @@
 usage() {
     prettyTitle "iofog Platform Bootstrap"
     echo
-    echoInfo "Usage: `basename $0` [-h, --help] [--verify]"
+    echoInfo "Usage: `basename $0` [-h, --help] [-v, --verify] [--gcloud-service-account KEY_FILE] [--no-auth]"
     echoInfo "  --verify will only check for dependencies, and will NOT initialise user variable files"
+    echoInfo "  --no-auth will not perform gcloud authentication"
+    echoInfo "  --gcloud-service-account KEY_FILE will only perform gcloud authentication using the KEY_FILE as service account"
     echo
     echoInfo "$0 will install all dependencies and initialise user variables files"
     exit 0
@@ -24,6 +26,34 @@ usage() {
 if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
   usage
 fi
+
+POSITIONAL_ARGS=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+case $key in
+    -h|--help)
+    usage
+    ;;
+    -v|--verify)
+    VERIFY=1
+    shift # past argument
+    ;;
+    --gcloud-service-account)
+    GCLOUD_KEY_FILE="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --no-auth)
+    NO_AUTH=1
+    shift # past argument
+    ;;
+    *)
+    POSITIONAL_ARGS+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
 
 
 OS=$(uname -s | tr A-Z a-z)
@@ -446,7 +476,13 @@ check_jq() {
 
 display_gcp_final_instructions() {
     prettyTitle "Gcloud authentication:"
-    gcloud auth login
+    if [[ $NO_AUTH -ne 1 ]]; then
+        if [[ -f "$GCLOUD_KEY_FILE" ]]; then
+            gcloud auth activate-service-account --key-file "$GCLOUD_KEY_FILE"
+        else
+            gcloud auth login
+        fi
+    fi
     prettyTitle "Next Steps"
     echo "Please run the following commands and add them in your shell profile file to make gcloud available in the PATH:"
     echo "source $LIB_LOCATION/google-cloud-sdk/completion.bash.inc"
@@ -479,7 +515,7 @@ iofogctl_success=$?
 check_jq
 jq_success=$?
 
-if [[ $1 != "--verify " ]]; then
+if [[ $VERIFY -ne 1]]; then
     echoInfo "Setting up Terraform files..."
     cp ./infrastructure/environments_gke/user/vars.template.tfvars ./my_vars.tfvars
 else

@@ -16,8 +16,7 @@ controller_image        = "iofog/controller:latest"
 connector_image         = "iofog/connector:latest"
 operator_image          = "iofog/iofog-operator:latest"
 kubelet_image           = "iofog/iofog-kubelet:latest"
-    
-    
+
 # ioFog user vars (u    sed to configure controller and agents)
 iofogUser_name          = "iofog"
 iofogUser_surname       = "edgeworx"          
