@@ -25,15 +25,16 @@ fi
 
 prettyHeader "GKE ioFog stack status"
 
+NAMESPACE=$(cat ./my_vars.tfvars | grep 'iofogctl_namespace' | tr -d ' ' | awk -F '=' '{print $2}' | tr -d \")
+
 prettyTitle "Pods"
-kubectl get pods -n iofog -o wide
+kubectl get pods -n $NAMESPACE -o wide
 echo ""
 
 
 prettyTitle "Services"
-kubectl get svc -n iofog
+kubectl get svc -n $NAMESPACE
 echo ""
 
 prettyTitle "Iofogctl get all"
-NAMESPACE=$(cat ./my_vars.tfvars | grep 'iofogctl_namespace' | tr -d ' ' | awk -F '=' '{print $2}' | tr -d \")
 iofogctl get all -n $NAMESPACE
