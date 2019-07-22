@@ -138,7 +138,7 @@ resource "null_resource" "packet_agent_deploy" {
     count = "${var.count_x86 + var.count_arm}" 
 
     provisioner "local-exec" {
-        command = "export AGENT_VERSION=${var.agent_version} && iofogctl deploy agent packet_agent_${count.index} --user root --key-file ${var.ssh_key} --host ${module.packet_edge_nodes.edge_nodes[count.index]} -n ${var.iofogctl_namespace} 2>&1 >/dev/null"
+        command = "export AGENT_VERSION=${var.agent_version} && iofogctl deploy agent packet_agent_${count.index} --user root --key-file ${var.ssh_key} --host ${module.packet_edge_nodes.edge_nodes[count.index]} -n ${var.iofogctl_namespace} -q"
     }
     depends_on = [
         "module.iofogctl",
