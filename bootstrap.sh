@@ -62,7 +62,7 @@ GCP_SDK_PACKAGE_URL="https://console.cloud.google.com/storage/browser/cloud-sdk-
 GCP_SDK_INSTRUCTION_URL="https://cloud.google.com/sdk/docs/downloads-versioned-archives"
 LIB_LOCATION=/usr/local/lib
 
-TERRAFORM_VERSION=0.11.14
+TERRAFORM_VERSION=0.12.5
 TERRAFORM_PACKAGE_URL="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/"
 TERRAFORM_INSTRUCTION_URL="https://cloud.google.com/sdk/docs/downloads-versioned-archives"
 

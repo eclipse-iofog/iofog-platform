@@ -50,7 +50,7 @@ variable "namespace" {
 }
 
 variable "agent_list" {
-  type = list(string)
+  type = list(map(string))
 }
 
 data "template_file" "iofogctl" {

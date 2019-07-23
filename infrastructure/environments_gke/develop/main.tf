@@ -136,14 +136,15 @@ module "kubernetes" {
 module "packet_edge_nodes" {
   source = "../../modules/packet_edge_nodes"
 
-  project_id       = var.packet_project_id
-  operating_system = var.operating_system
-  facility         = var.packet_facility
-  count_x86        = var.count_x86
-  plan_x86         = var.plan_x86
-  count_arm        = var.count_arm
-  plan_arm         = var.plan_arm
-  environment      = var.environment
+  packet_auth_token = file("../packet.token")
+  project_id        = var.packet_project_id
+  operating_system  = var.operating_system
+  facility          = var.packet_facility
+  count_x86         = var.count_x86
+  plan_x86          = var.plan_x86
+  count_arm         = var.count_arm
+  plan_arm          = var.plan_arm
+  environment       = var.environment
 }
 
 #############################################################
@@ -193,4 +194,3 @@ resource "null_resource" "packet_agent_deploy" {
 output "packet_instance_ip_addrs" {
   value = module.packet_edge_nodes.edge_nodes
 }
-
