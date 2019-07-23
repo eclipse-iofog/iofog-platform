@@ -86,7 +86,7 @@ resource "null_resource" "export_rendered_template" {
 # Expects env variable PACKAGE_CLOUD_CREDS populated to pass to iofogctl for instaling unreleased agent versions
 #################################################################################################################
 resource "null_resource" "iofogctl_deploy" {
-  triggers {
+  triggers = {
     build_number = "${timestamp()}"
   }
   # use iofogctl to deploy iofoc ecn and configure agents
