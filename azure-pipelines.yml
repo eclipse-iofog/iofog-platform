@@ -144,7 +144,7 @@ jobs:
           CONTROLLER_PASSWORD=$(yq r iofogctl_inventory.yaml 'controllers[0].iofoguser.password')
 
           gcloud auth configure-docker --quiet
-          docker run --name test-runner \
+          sudo docker run --name test-runner \
               -v "$(Agent.TempDirectory)/azure_ssh_key":/root/.ssh/id_rsa \
               -v "$(Agent.TempDirectory)/test-results":/root/test-results \
               -e CONTROLLER="${CONTROLLER_IP}:51121" \
