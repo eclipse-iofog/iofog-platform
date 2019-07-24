@@ -12,7 +12,7 @@ variable "service_account"      {}
 # Use GKE module to setup a k8s cluster with specified node pool
 module "gke" {
     source                      = "terraform-google-modules/kubernetes-engine/google"
-    version                     = "2.0.1"
+    version                     = "4.0.0"
     project_id                  = "${var.project_id}"
     name                        = "${var.gke_name}"
     region                      = "${var.gke_region}"
@@ -21,7 +21,10 @@ module "gke" {
     service_account             = "${var.service_account}"
     ip_range_pods               = "${var.gke_network_name}-pods"
     ip_range_services           = "${var.gke_network_name}-services"
+    http_load_balancing         = false
+    horizontal_pod_autoscaling  = true
     kubernetes_dashboard        = true
+    network_policy              = true
 
     node_pools = [
     {
