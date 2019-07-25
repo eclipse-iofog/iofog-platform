@@ -26,14 +26,28 @@ jobs:
     pool: server
 
     steps:
-      - task: InvokeRESTAPI@1
-        displayName: 'trigger product demo job'
+      - task: DownloadSecureFile@1
+        displayName: 'Download secure file - healthcare microservice app config'
         inputs:
-          connectionType: 'connectedServiceName'
-          serviceConnection: 'Pipelines'
-          method: 'POST'
-          urlSuffix: '/edgeworx/_apis/build/builds?api-version=5.0'
-          body: "{\"Definition\":{\"id\":\"24\"}}"
+          secureFile: 'develop-msv-config.yaml'
+
+      - task: DownloadSecureFile@1
+        displayName: 'Download secure file - smartcam microservice app config'
+        inputs:
+          secureFile: 'develop-smartcam-msv-config.yaml'
+
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '3.x'
+          addToPath: true
+          architecture: 'x64'
+
+      # Installation will fail if develop environment is not up and running
+      - script: |
+          curl http://www.edgeworx.io/downloads/eap/edgeworx-iofog-sdk_1.2.0.tar.gz | tar zx
+          cd edgeworx-iofog-sdk_1.2.0
+          ./install.sh $(Agent.TempDirectory)/develop-msv-config.yaml
+        displayName: 'Deploy health app to develop'
 
   - job: Platform
     pool:
