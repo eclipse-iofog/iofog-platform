@@ -165,7 +165,7 @@ install_tf() {
     fi
     curl -fSL -o terraform.zip https://releases.hashicorp.com/terraform/"$TERRAFORM_VERSION"/terraform_"$TERRAFORM_VERSION"_"$1"_amd64.zip
     sudo mkdir -p "$LIB_LOCATION"/
-    sudo unzip -q terraform.zip -d "$LIB_LOCATION"/terraform
+    sudo unzip -oq terraform.zip -d "$LIB_LOCATION"/terraform
     rm -f terraform.zip
     sudo ln -Ffs "$LIB_LOCATION"/terraform/terraform /usr/local/bin/terraform
     if [[ -z $(command -v terraform) ]]; then
