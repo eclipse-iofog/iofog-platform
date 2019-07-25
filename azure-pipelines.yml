@@ -2,7 +2,6 @@ trigger:
   branches:
     include:
       - develop
-      - fix-pipeline
   paths:
     exclude:
       - README.md
@@ -23,7 +22,7 @@ variables:
 jobs:
   - job: Demo
     dependsOn: Platform
-    pool: 'GCP Ubuntu 1604'
+    pool: 'Ubuntu-16.04'
 
     steps:
       - task: DownloadSecureFile@1
