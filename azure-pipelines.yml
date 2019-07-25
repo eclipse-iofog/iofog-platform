@@ -22,7 +22,8 @@ variables:
 jobs:
   - job: Demo
     dependsOn: Platform
-    pool: 'Ubuntu-16.04'
+    pool:
+      vmImage: 'Ubuntu-16.04'
 
     steps:
       - task: DownloadSecureFile@1
