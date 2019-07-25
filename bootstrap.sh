@@ -179,34 +179,42 @@ install_tf() {
     fi
 }
 
+install_tf_by_os() {
+    if [[ "$OSTYPE" == "linux-gnu" ]]; then
+        install_tf "linux"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        # Mac OSX
+        install_tf "darwin"
+    elif [[ "$OSTYPE" == "cygwin" ]]; then
+        # POSIX compatibility layer and Linux environment emulation for Windows
+        install_tf "windows"
+    elif [[ "$OSTYPE" == "msys" ]]; then
+        # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
+        install_tf "windows"
+    elif [[ "$OSTYPE" == "win32" ]]; then
+        # I'm not sure this can happen.
+        install_tf "windows"
+    elif [[ "$OSTYPE" == "freebsd"* ]]; then
+        install_tf "freebsd"
+    else
+        help_install_tf
+        return 1
+    fi
+    return $?
+}
+
 check_tf() {
     { # Try
         if [[ -z $(command -v terraform) ]]; then
-            if [[ "$OSTYPE" == "linux-gnu" ]]; then
-                install_tf "linux"
-            elif [[ "$OSTYPE" == "darwin"* ]]; then
-                # Mac OSX
-                install_tf "darwin"
-            elif [[ "$OSTYPE" == "cygwin" ]]; then
-                # POSIX compatibility layer and Linux environment emulation for Windows
-                install_tf "windows"
-            elif [[ "$OSTYPE" == "msys" ]]; then
-                # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
-                install_tf "windows"
-            elif [[ "$OSTYPE" == "win32" ]]; then
-                # I'm not sure this can happen.
-                install_tf "windows"
-            elif [[ "$OSTYPE" == "freebsd"* ]]; then
-                install_tf "freebsd"
-            else
-                help_install_tf
-                return 1
-            fi
+            install_tf_by_os
+        elif [[ "$(terraform --version | grep 'Terraform v' | awk '{print $2}')" != "v$TERRAFORM_VERSION" ]]; then
+            echoInfo "Found terraform version: $(terraform --version | grep 'Terraform v' | awk '{print $2}'). Installing version: v$TERRAFORM_VERSION"
+            install_tf_by_os
         else
             echoSuccess "terraform found in path!"
             terraform --version    
             echo ""
-            return 0            
+            return 0
         fi
         return $?
     } || { # Catch
@@ -529,7 +537,7 @@ iofogctl_success=$?
 check_jq
 jq_success=$?
 
-if [[ $VERIFY -ne 1]]; then
+if [[ $VERIFY -ne 1 ]]; then
     echoInfo "Setting up Terraform files..."
     cp ./infrastructure/environments_gke/user/vars.template.tfvars ./my_vars.tfvars
 else
