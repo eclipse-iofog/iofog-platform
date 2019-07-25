@@ -92,6 +92,7 @@ install_gcp() {
         return 1
     else
         echoSuccess "gcloud installed"
+        GCLOUD_INSTALLED=true
         gcloud --version
         echo ""
         return 0
@@ -472,8 +473,7 @@ check_jq() {
             return $?
         else
             echoSuccess "jq found in path!"
-            jq --version    
-            echo ""
+            jq --version
             return 0
         fi
     } || {
@@ -482,35 +482,37 @@ check_jq() {
     }
 }
 
-display_gcp_final_instructions() {
+authenticate_gcp() {
+    if [[ "${NO_AUTH}" -eq 1 || "${VERIFY}" -eq 1 ]]; then return; fi
+
     prettyTitle "Gcloud authentication:"
-    if [[ $NO_AUTH -ne 1 ]]; then
-        if [[ -f "$GCLOUD_KEY_FILE" ]]; then
-            gcloud auth activate-service-account --key-file "$GCLOUD_KEY_FILE"
-        else
-            gcloud auth login
-        fi
+    if [[ -f "$GCLOUD_KEY_FILE" ]]; then
+        echo "Activating service account from file: ${GCLOUD_KEY_FILE}..."
+        gcloud auth activate-service-account --key-file "${GCLOUD_KEY_FILE}"
+    else
+        echo "Activating service account using interactive login..."
+        gcloud auth login
     fi
+    echo
+}
+
+display_gcp_final_instructions() {
+    if ! [[ ${GCLOUD_INSTALLED} = true ]]; then return; fi
+
     prettyTitle "Next Steps"
     echo "Please run the following commands and add them in your shell profile file to make gcloud available in the PATH:"
-    if [ -n "`$SHELL -c 'echo $ZSH_VERSION'`" ]; then
+    if [[ -n "`$SHELL -c 'echo $ZSH_VERSION'`" ]]; then
     # assume Zsh
         echo "source $LIB_LOCATION/google-cloud-sdk/completion.zsh.inc"
         echo "source $LIB_LOCATION/google-cloud-sdk/path.zsh.inc"
-    elif [ -n "`$SHELL -c 'echo $BASH_VERSION'`" ]; then
-    # assume Bash
-        echo "source $LIB_LOCATION/google-cloud-sdk/completion.bash.inc"
-        echo "source $LIB_LOCATION/google-cloud-sdk/path.bash.inc"
-    elif [ -n "`$SHELL -c 'echo $FISH_VERSION'`" ]; then
+    elif [[ -n "`$SHELL -c 'echo $FISH_VERSION'`" ]]; then
     # assume Fish
         echo "source $LIB_LOCATION/google-cloud-sdk/path.fish.inc"
     else
-    # assume unknown shell, defaulting to bash
+    # default to Bash
         echo "source $LIB_LOCATION/google-cloud-sdk/completion.bash.inc"
         echo "source $LIB_LOCATION/google-cloud-sdk/path.bash.inc"
     fi
-    echo ""
-
 }
 
 prettyHeader "Bootstrapping ioFog platform dependencies"
@@ -527,6 +529,7 @@ if [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "
 fi
 
 check_gcp
+authenticate_gcp
 gcp_success=$?
 check_tf
 tf_success=$?

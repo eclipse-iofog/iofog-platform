@@ -61,31 +61,14 @@ jobs:
           secureFile: develop.tfvars
 
       - script: |
-          echo "deb https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-          sudo apt-get update && sudo apt-get install google-cloud-sdk
-
-          gcloud --quiet auth activate-service-account --key-file=$(Agent.TempDirectory)/azure-gcp.json
+          ./bootstrap.sh --gcloud-service-account $(Agent.TempDirectory)/azure-gcp.json
           gcloud --quiet config set project focal-freedom-236620
+        displayName: 'Setup tools'
 
-          # set env var GOOGLE_APPLICATION_CREDENTIALS for terraform to pick up for GCP authentication
+      - script: |
           echo "##vso[task.setvariable variable=GOOGLE_APPLICATION_CREDENTIALS]$(Agent.TempDirectory)/azure-gcp.json"
-
           echo "##vso[task.setvariable variable=PACKET_AUTH_TOKEN]$(cat $(Agent.TempDirectory)/packet.token)"
-        displayName: 'Install and init gcloud'
-
-      - script: |
-          curl -s https://$(iofogctlPackageCloudToken):@packagecloud.io/install/repositories/iofog/iofogctl-snapshots/script.deb.sh | sudo bash
-          # install iofogctl version set in pipeline variable
-          sudo apt-get install iofogctl=$(iofogctl_version)
-          iofogctl version
-        displayName: 'Install iofogctl'
-
-      - script: |
-          sudo add-apt-repository ppa:rmescandon/yq
-          sudo apt update
-          sudo apt install yq -y
-        displayName: 'Install yq'
+        displayName: 'Setup credentials for Terraform'
 
       - script: |
           cp $(Agent.TempDirectory)/packet.token $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/packet.token
@@ -94,24 +77,15 @@ jobs:
         displayName: 'Copy secret files'
 
       - script: |
-          wget https://releases.hashicorp.com/terraform/0.12.5/terraform_0.12.5_linux_amd64.zip
-          unzip terraform_0.12.5_linux_amd64.zip
-          sudo mv terraform /usr/local/bin/terraform
-        displayName: 'Install terraform'
-        workingDirectory: $(Agent.TempDirectory)
-
-      - script: |
           terraform init
         displayName: 'Init terraform'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
 
       - script: |
-          export PACKET_AUTH_TOKEN=$(cat ../packet.token)
           terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
         displayName: 'Destroy existing infrastructure'
         continueOnError: 'true'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
-        # condition: and(always(), eq(variables['Build.Reason'], 'Schedule'))
 
       - script: |
           export PACKET_AUTH_TOKEN=$(cat ../packet.token)
@@ -137,11 +111,11 @@ jobs:
           mkdir "$(Agent.TempDirectory)/test-results"
 
           CONTROLLER_IP=$(sed -n 's/.*kubecontrollerip: "\([0-9.]*\)"/\1/p' iofogctl_inventory.yaml)
-          AGENT_USER=$(yq r iofogctl_inventory.yaml 'agents[0].user')
-          AGENT_HOST=$(yq r iofogctl_inventory.yaml 'agents[0].host')
-          AGENT_PORT=$(yq r iofogctl_inventory.yaml 'agents[0].port')
-          CONTROLLER_EMAIL=$(yq r iofogctl_inventory.yaml 'controllers[0].iofoguser.email')
-          CONTROLLER_PASSWORD=$(yq r iofogctl_inventory.yaml 'controllers[0].iofoguser.password')
+          AGENT_USER=$(cat iofogctl_inventory.yaml | docker run -i --rm evns/yq 'agents[0].user')
+          AGENT_HOST=$(cat iofogctl_inventory.yaml | docker run -i --rm evns/yq 'agents[0].host')
+          AGENT_PORT=$(cat iofogctl_inventory.yaml | docker run -i --rm evns/yq 'agents[0].port')
+          CONTROLLER_EMAIL=$(cat iofogctl_inventory.yaml | docker run -i --rm evns/yq 'controllers[0].iofoguser.email')
+          CONTROLLER_PASSWORD=$(cat iofogctl_inventory.yaml | docker run -i --rm evns/yq 'controllers[0].iofoguser.password')
 
           gcloud auth configure-docker --quiet
           sudo docker run --name test-runner \
