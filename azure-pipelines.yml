@@ -23,7 +23,7 @@ variables:
 jobs:
   - job: Demo
     dependsOn: Platform
-    pool: server
+    pool: 'GCP Ubuntu 1604'
 
     steps:
       - task: DownloadSecureFile@1
