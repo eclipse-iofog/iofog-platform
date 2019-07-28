@@ -90,13 +90,13 @@ terraform {
 }
 
 provider "google" {
-  version = "~> 2.7.0"
+  version = "~> 2.10.0"
   project = var.project_id
   region  = var.gcp_region
 }
 
 provider "google-beta" {
-  version = "~> 2.7.0"
+  version = "~> 2.10.0"
   region  = var.gcp_region
 }
 
