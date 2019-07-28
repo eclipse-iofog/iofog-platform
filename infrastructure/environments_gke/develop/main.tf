@@ -190,7 +190,3 @@ resource "null_resource" "packet_agent_deploy" {
     module.packet_edge_nodes,
   ]
 }
-
-output "packet_instance_ip_addrs" {
-  value = module.packet_edge_nodes.edge_nodes
-}
