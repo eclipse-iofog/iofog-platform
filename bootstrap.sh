@@ -165,22 +165,6 @@ install_tf() {
         
     fi
 
-    if [[ -z "$(command -v go)" ]]; then
-        echoInfo "Installing golang as its a requirements for Terraform"
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            curl -O https://dl.google.com/go/go1.12.7.darwin-amd64.tar.gz
-            tar -xvf go1.12.7.darwin-amd64.tar.gz
-        else
-            curl -O https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
-            tar -xvf go1.12.7.linux-amd64.tar.gz
-        fi
-        
-        sudo chown -R root:root ./go
-        sudo mv go /usr/local
-        export GOPATH=$HOME/go
-        export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
-    fi
-
     curl -fSL -o terraform.zip https://releases.hashicorp.com/terraform/"$TERRAFORM_VERSION"/terraform_"$TERRAFORM_VERSION"_"$1"_amd64.zip
     sudo mkdir -p "$LIB_LOCATION"/
     sudo unzip -oq terraform.zip -d "$LIB_LOCATION"/terraform
@@ -240,6 +224,47 @@ check_tf() {
         return 1
     }
 }
+
+check_go() {
+    if [[ -z $(command -v go) ]]; then
+        install_go
+    else
+        echoSuccess "go found in path!"
+        go version    
+        echo ""
+        return 0
+    fi
+    return $?
+}
+
+install_go() {
+    if [[ -z "$(command -v go)" ]]; then
+        echoInfo "Installing golang as its a requirement for Terraform"
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            curl -O https://dl.google.com/go/go1.12.7.darwin-amd64.tar.gz
+            sudo tar -xvf go1.12.7.darwin-amd64.tar.gz
+        else
+            curl -O https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
+            sudo tar -xvf go1.12.7.linux-amd64.tar.gz
+        fi
+        
+        sudo chown -R root:root ./go
+        sudo cp go /usr/local
+        export GOPATH=$HOME/go
+        export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+    else
+        echoSuccess "go installed"
+        go version
+        echo ""
+        return 0   
+    fi
+}
+
+help_install_go() {
+    echoError "We could not automatically install go"
+    echoInfo "Please download the relevant zip package according to your operating system."
+}
+
 
 #
 # Check between apt or yum
@@ -548,6 +573,8 @@ fi
 check_gcp
 authenticate_gcp
 gcp_success=$?
+check_go
+go_success=$?
 check_tf
 tf_success=$?
 check_kubectl
@@ -567,6 +594,13 @@ fi
 success=0
 echo ""
 prettyTitle "Bootstrap Summary:"
+if [[ $go_success -ne 0 ]]; then
+    echoError " ✖️ go" 
+    help_install_go
+    success=1
+else
+    echoSuccess " ✔️  go"
+fi
 if [[ $tf_success -ne 0 ]]; then
     echoError " ✖️ Terraform" 
     help_install_tf
