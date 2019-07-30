@@ -102,26 +102,31 @@ install_gcp() {
 check_gcp() {
     { # Try
         if [[ -z $(command -v gcloud) ]]; then
-            echoInfo "====> Installing gcloud sdk..."
-            if [[ "$OSTYPE" == "linux-gnu" ]]; then
-                install_gcp "linux"
-            elif [[ "$OSTYPE" == "darwin"* ]]; then
-                # Mac OSX
-                install_gcp "darwin"
-            elif [[ "$OSTYPE" == "cygwin" ]]; then
-                # POSIX compatibility layer and Linux environment emulation for Windows
-                install_gcp "windows"
-            elif [[ "$OSTYPE" == "msys" ]]; then
-                # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
-                install_gcp "windows"
-            elif [[ "$OSTYPE" == "win32" ]]; then
-                # I'm not sure this can happen.
-                install_gcp "windows"
-            elif [[ "$OSTYPE" == "freebsd"* ]]; then
-                install_gcp "linux"
-            else
-                help_install_gcp_sdk
+            echoError "gcloud not found!"
+            if [[ "${VERIFY}" -eq 1 ]]; then
                 return 1
+            else
+                echoInfo "====> Installing gcloud sdk..."
+                if [[ "$OSTYPE" == "linux-gnu" ]]; then
+                    install_gcp "linux"
+                elif [[ "$OSTYPE" == "darwin"* ]]; then
+                    # Mac OSX
+                    install_gcp "darwin"
+                elif [[ "$OSTYPE" == "cygwin" ]]; then
+                    # POSIX compatibility layer and Linux environment emulation for Windows
+                    install_gcp "windows"
+                elif [[ "$OSTYPE" == "msys" ]]; then
+                    # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
+                    install_gcp "windows"
+                elif [[ "$OSTYPE" == "win32" ]]; then
+                    # I'm not sure this can happen.
+                    install_gcp "windows"
+                elif [[ "$OSTYPE" == "freebsd"* ]]; then
+                    install_gcp "linux"
+                else
+                    help_install_gcp_sdk
+                    return 1
+                fi
             fi
         else
             echoSuccess "gcloud found in path!"
@@ -208,10 +213,21 @@ install_tf_by_os() {
 check_tf() {
     { # Try
         if [[ -z $(command -v terraform) ]]; then
-            install_tf_by_os
+            echoError "Terraform not found!"
+            if [[ "${VERIFY}" -eq 1 ]]; then
+                return 1
+            else
+                install_tf_by_os
+            fi
         elif [[ "$(terraform --version | grep 'Terraform v' | awk '{print $2}')" != "v$TERRAFORM_VERSION" ]]; then
-            echoInfo "Found terraform version: $(terraform --version | grep 'Terraform v' | awk '{print $2}'). Installing version: v$TERRAFORM_VERSION"
-            install_tf_by_os
+            echoInfo "Found terraform version: $(terraform --version | grep 'Terraform v' | awk '{print $2}')."
+            if [[ "${VERIFY}" -eq 1 ]]; then
+              echoError "Terraform version is not same as v${TERRAFORM_VERSION}!"
+              return 1
+            else
+              echoInfo "Installing version: v$TERRAFORM_VERSION"
+              install_tf_by_os
+            fi
         else
             echoSuccess "terraform found in path!"
             terraform --version    
@@ -227,7 +243,12 @@ check_tf() {
 
 check_go() {
     if [[ -z $(command -v go) ]]; then
-        install_go
+        echoError "go not found!"
+        if [[ "${VERIFY}" -eq 1 ]]; then
+            return 1
+        else
+            install_go
+        fi
     else
         echoSuccess "go found in path!"
         go version    
@@ -249,9 +270,19 @@ install_go() {
         fi
         
         sudo chown -R root:root ./go
-        sudo cp go /usr/local
-        export GOPATH=$HOME/go
-        export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+        sudo cp -r go /usr/local
+
+        export GOPATH="$HOME/go"
+        grep -qxF "export GOPATH=\"$HOME/go\"" ~/.profile
+        if [[ $? -ne 0 ]]; then
+            echo "export GOPATH=\"$HOME/go\"" >> ~/.profile
+        fi
+
+        export PATH="$PATH:/usr/local/go/bin:$GOPATH/bin"
+        grep -qxF "export PATH=\"$PATH:/usr/local/go/bin:$GOPATH/bin\"" ~/.profile
+        if [[ $? -ne 0 ]]; then
+            echo "export PATH=\"$PATH:/usr/local/go/bin:$GOPATH/bin\"" >> ~/.profile
+        fi
     else
         echoSuccess "go installed"
         go version
@@ -357,8 +388,13 @@ install_iofogctl() {
 check_iofogctl() {
     {
         if [[ -z "$(command -v iofogctl)" ]]; then
-            install_iofogctl
-            return $?
+            echoError "iofogctl not found!"
+            if [[ "${VERIFY}" -eq 1 ]]; then
+                return 1
+            else
+                install_iofogctl
+                return $?
+            fi
         else
             echoSuccess "iofogctl found in path!"
             iofogctl version    
@@ -405,25 +441,30 @@ install_kubectl() {
 check_kubectl() {
     {
         if ! [[ -x "$(command -v kubectl)" ]]; then
-            if [[ "$OSTYPE" == "linux-gnu" ]]; then
-                install_kubectl "linux"
-            elif [[ "$OSTYPE" == "darwin"* ]]; then
-                # Mac OSX
-                install_kubectl "darwin"
-            elif [[ "$OSTYPE" == "cygwin" ]]; then
-                # POSIX compatibility layer and Linux environment emulation for Windows
-                install_kubectl "windows"
-            elif [[ "$OSTYPE" == "msys" ]]; then
-                # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
-                install_kubectl "windows"
-            elif [[ "$OSTYPE" == "win32" ]]; then
-                # I'm not sure this can happen.
-                install_kubectl "windows"
-            elif [[ "$OSTYPE" == "freebsd"* ]]; then
-                install_kubectl "linux"
+            echoError "Kubectl not found"
+            if [[ "${VERIFY}" -eq 1 ]]; then
+                return 1
             else
-                help_install_kubectl
-                false
+                if [[ "$OSTYPE" == "linux-gnu" ]]; then
+                    install_kubectl "linux"
+                elif [[ "$OSTYPE" == "darwin"* ]]; then
+                    # Mac OSX
+                    install_kubectl "darwin"
+                elif [[ "$OSTYPE" == "cygwin" ]]; then
+                    # POSIX compatibility layer and Linux environment emulation for Windows
+                    install_kubectl "windows"
+                elif [[ "$OSTYPE" == "msys" ]]; then
+                    # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
+                    install_kubectl "windows"
+                elif [[ "$OSTYPE" == "win32" ]]; then
+                    # I'm not sure this can happen.
+                    install_kubectl "windows"
+                elif [[ "$OSTYPE" == "freebsd"* ]]; then
+                    install_kubectl "linux"
+                else
+                    help_install_kubectl
+                    false
+                fi
             fi
         else
             echoSuccess "kubectl found in path!"
@@ -492,27 +533,32 @@ install_jq() {
 check_jq() {
     {
         if ! [[ -x "$(command -v jq)" ]]; then
-            if [[ "$OSTYPE" == "linux-gnu" ]]; then
-                install_jq "linux"
-            elif [[ "$OSTYPE" == "darwin"* ]]; then
-                # Mac OSX
-                install_jq "darwin"
-            elif [[ "$OSTYPE" == "cygwin" ]]; then
-                # POSIX compatibility layer and Linux environment emulation for Windows
-                install_jq "windows"
-            elif [[ "$OSTYPE" == "msys" ]]; then
-                # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
-                install_jq "windows"
-            elif [[ "$OSTYPE" == "win32" ]]; then
-                # I'm not sure this can happen.
-                install_jq "windows"
-            elif [[ "$OSTYPE" == "freebsd"* ]]; then
-                install_jq "linux"
-            else
-                help_install_jq
+            echoError "jq not found!"
+            if [[ "${VERIFY}" -eq 1 ]]; then
                 return 1
+            else
+                if [[ "$OSTYPE" == "linux-gnu" ]]; then
+                    install_jq "linux"
+                elif [[ "$OSTYPE" == "darwin"* ]]; then
+                    # Mac OSX
+                    install_jq "darwin"
+                elif [[ "$OSTYPE" == "cygwin" ]]; then
+                    # POSIX compatibility layer and Linux environment emulation for Windows
+                    install_jq "windows"
+                elif [[ "$OSTYPE" == "msys" ]]; then
+                    # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
+                    install_jq "windows"
+                elif [[ "$OSTYPE" == "win32" ]]; then
+                    # I'm not sure this can happen.
+                    install_jq "windows"
+                elif [[ "$OSTYPE" == "freebsd"* ]]; then
+                    install_jq "linux"
+                else
+                    help_install_jq
+                    return 1
+                fi
+                return $?
             fi
-            return $?
         else
             echoSuccess "jq found in path!"
             jq --version
