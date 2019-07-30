@@ -8,14 +8,6 @@ trigger:
 
 pr: none
 
-schedules:
-- cron: '0 1,14,19 * * *'
-  displayName: Daily build 7am, 12pm and 6pm PST
-  branches:
-    include:
-      - develop
-  always: true
-
 variables:
   group: 'pipelines'
 

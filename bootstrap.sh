@@ -164,6 +164,23 @@ install_tf() {
         }
         
     fi
+
+    if [[ -z "$(command -v go)" ]]; then
+        echoInfo "Installing golang as its a requirements for Terraform"
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            curl -O https://dl.google.com/go/go1.12.7.darwin-amd64.tar.gz
+            tar -xvf go1.12.7.darwin-amd64.tar.gz
+        else
+            curl -O https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
+            tar -xvf go1.12.7.linux-amd64.tar.gz
+        fi
+        
+        sudo chown -R root:root ./go
+        sudo mv go /usr/local
+        export GOPATH=$HOME/go
+        export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+    fi
+
     curl -fSL -o terraform.zip https://releases.hashicorp.com/terraform/"$TERRAFORM_VERSION"/terraform_"$TERRAFORM_VERSION"_"$1"_amd64.zip
     sudo mkdir -p "$LIB_LOCATION"/
     sudo unzip -oq terraform.zip -d "$LIB_LOCATION"/terraform
