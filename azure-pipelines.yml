@@ -84,6 +84,7 @@ jobs:
 
       - script: |
           terraform init
+          go version
         displayName: 'Init terraform'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
 
