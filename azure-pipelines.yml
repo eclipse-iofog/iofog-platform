@@ -85,7 +85,11 @@ jobs:
         displayName: 'Copy secret files'
 
       - script: |
+          ls /usr/local
           echo 'go version'
+          
+          export GOPATH=$HOME/go
+          export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
           go version
           terraform init
         displayName: 'Init terraform'
