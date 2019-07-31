@@ -69,6 +69,7 @@ jobs:
       - script: |
           ./bootstrap.sh --gcloud-service-account $(Agent.TempDirectory)/azure-gcp.json
           gcloud --quiet config set project focal-freedom-236620
+          . ~/profile
           go version
         displayName: 'Setup tools'
 
