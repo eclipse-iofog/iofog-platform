@@ -85,6 +85,8 @@ jobs:
         displayName: 'Copy secret files'
 
       - script: |
+          echo 'go version'
+          go version
           terraform init
         displayName: 'Init terraform'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
