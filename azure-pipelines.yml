@@ -67,9 +67,12 @@ jobs:
           secureFile: develop.tfvars
 
       - script: |
+          . ~/.profile
           ./bootstrap.sh --gcloud-service-account $(Agent.TempDirectory)/azure-gcp.json
           gcloud --quiet config set project focal-freedom-236620
           . ~/.profile
+          echo "##vso[task.setvariable variable=GOPATH]${GOPATH}"
+          echo "##vso[task.setvariable variable=PATH]${PATH}"
           go version
         displayName: 'Setup tools'
 
@@ -85,7 +88,7 @@ jobs:
         displayName: 'Copy secret files'
 
       - script: |
-          echo 'go version'
+          go version
           terraform init
         displayName: 'Init terraform'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
