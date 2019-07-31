@@ -85,23 +85,22 @@ jobs:
         displayName: 'Copy secret files'
 
       - script: |
-          ls /usr/local
           echo 'go version'
-          
-          export GOPATH=$HOME/go
-          export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
-          go version
           terraform init
         displayName: 'Init terraform'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
 
       - script: |
+          go version
           terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
         displayName: 'Destroy existing infrastructure'
         continueOnError: 'true'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
 
       - script: |
+          export GOPATH=$HOME/go
+          export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+          go version
           export PACKET_AUTH_TOKEN=$(cat ../packet.token)
           terraform apply -var-file=$(Agent.TempDirectory)/develop.tfvars \
                           -var 'controller_image=$(controller_image)' \
