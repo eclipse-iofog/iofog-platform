@@ -69,6 +69,7 @@ jobs:
       - script: |
           ./bootstrap.sh --gcloud-service-account $(Agent.TempDirectory)/azure-gcp.json
           gcloud --quiet config set project focal-freedom-236620
+          go version
         displayName: 'Setup tools'
 
       - script: |
@@ -84,7 +85,6 @@ jobs:
 
       - script: |
           terraform init
-          go version
         displayName: 'Init terraform'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
 
