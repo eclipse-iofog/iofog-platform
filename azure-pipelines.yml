@@ -69,17 +69,13 @@ jobs:
       - script: |
           . ~/.profile
           ./bootstrap.sh --gcloud-service-account $(Agent.TempDirectory)/azure-gcp.json
-          gcloud --quiet config set project focal-freedom-236620
           . ~/.profile
           echo "##vso[task.setvariable variable=GOPATH]${GOPATH}"
           echo "##vso[task.setvariable variable=PATH]${PATH}"
-          go version
-        displayName: 'Setup tools'
 
-      - script: |
+          gcloud --quiet config set project focal-freedom-236620
           echo "##vso[task.setvariable variable=GOOGLE_APPLICATION_CREDENTIALS]$(Agent.TempDirectory)/azure-gcp.json"
-          echo "##vso[task.setvariable variable=PACKET_AUTH_TOKEN]$(cat $(Agent.TempDirectory)/packet.token)"
-        displayName: 'Setup credentials for Terraform'
+        displayName: 'Setup tools and gcloud credentials'
 
       - script: |
           cp $(Agent.TempDirectory)/packet.token $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/packet.token
@@ -88,14 +84,14 @@ jobs:
         displayName: 'Copy secret files'
 
       - script: |
-          go version
           terraform init
         displayName: 'Init terraform'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
 
       - script: |
-          go version
+          terraform show
           terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
+          terraform show
         displayName: 'Destroy existing infrastructure'
         continueOnError: 'true'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
@@ -103,15 +99,16 @@ jobs:
       - script: |
           export GOPATH=$HOME/go
           export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
-          go version
           export PACKET_AUTH_TOKEN=$(cat ../packet.token)
+          terraform show
           terraform apply -var-file=$(Agent.TempDirectory)/develop.tfvars \
                           -var 'controller_image=$(controller_image)' \
                           -var 'connector_image=$(connector_image)' \
                           -var 'operator_image=$(operator_image)' \
                           -var 'kubelet_image=$(kubelet_image)' \
                           -var 'agent_repo=$(tf_agent_repo)' \
-                          -var 'agent_version=$(tf_agent_version)' -auto-approve
+                          -var 'agent_version=$(tf_agent_version)' -auto-approve -parallelism=1
+          terraform show
           echo
           echo "Resources deployed:"
           echo
