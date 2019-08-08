@@ -23,22 +23,10 @@ jobs:
         inputs:
           secureFile: 'develop-msv-config.yaml'
 
-      - task: DownloadSecureFile@1
-        displayName: 'Download secure file - smartcam microservice app config'
-        inputs:
-          secureFile: 'develop-smartcam-msv-config.yaml'
-
-      - task: UsePythonVersion@0
-        inputs:
-          versionSpec: '3.x'
-          addToPath: true
-          architecture: 'x64'
-
       # Installation will fail if develop environment is not up and running
       - script: |
-          curl http://www.edgeworx.io/downloads/eap/edgeworx-iofog-sdk_1.2.0.tar.gz | tar zx
-          cd edgeworx-iofog-sdk_1.2.0
-          ./install.sh $(Agent.TempDirectory)/develop-msv-config.yaml
+          iofogctl get all
+          iofogctl -q -v deploy application -f  $(Agent.TempDirectory)/develop-msv-config.yaml
         displayName: 'Deploy health app to develop'
 
   - job: Platform
@@ -91,7 +79,9 @@ jobs:
       - script: |
           terraform show
           terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
+          RET=$?
           terraform show
+          exit $RET
         displayName: 'Destroy existing infrastructure'
         continueOnError: 'true'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
@@ -108,11 +98,13 @@ jobs:
                           -var 'kubelet_image=$(kubelet_image)' \
                           -var 'agent_repo=$(tf_agent_repo)' \
                           -var 'agent_version=$(tf_agent_version)' -auto-approve -parallelism=1
+          RET=$?
           terraform show
           echo
           echo "Resources deployed:"
           echo
           kubectl get all -n iofog -o wide
+          exit $RET
         displayName: 'Deploy infrastructure'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
         env:
