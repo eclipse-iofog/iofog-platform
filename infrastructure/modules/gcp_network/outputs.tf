@@ -23,3 +23,7 @@ output "subnets_secondary_ranges" {
   description = "The secondary ranges associated with these subnets"
   value       = module.vpc.subnets_secondary_ranges
 }
+
+output "google_compute_firewall_creation_timestamp" {
+  value       = google_compute_firewall.firewall.creation_timestamp
+}

@@ -90,13 +90,8 @@ terraform {
 }
 
 provider "google" {
-  version = "~> 2.10.0"
+  version = "~> 2.12.0"
   project = var.project_id
-  region  = var.gcp_region
-}
-
-provider "google-beta" {
-  version = "~> 2.10.0"
   region  = var.gcp_region
 }
 
@@ -126,8 +121,9 @@ module "kubernetes" {
   gke_name         = var.environment
   gke_region       = var.gcp_region
   gke_network_name = module.gcp_network.network_name
-  gke_subnetwork   = module.gcp_network.subnets_names[0]
+  gke_subnetwork   = length(module.gcp_network.subnets_names) > 0 ? module.gcp_network.subnets_names[0] : null
   service_account  = var.gcp_service_account
+  google_compute_firewall_creation_timestamp = module.gcp_network.google_compute_firewall_creation_timestamp
 }
 
 #############################################################
@@ -148,7 +144,7 @@ module "packet_edge_nodes" {
 }
 
 #############################################################
-# Iofogctl to install iofog and configure agents 
+# Iofogctl to install iofog and configure agents
 #############################################################
 module "iofogctl" {
   source = "../../modules/iofogctl"

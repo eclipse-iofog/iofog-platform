@@ -13,7 +13,7 @@ variable "region" {
 # Use vpc module to setup vpc, subnets and pribvate secondary subnets
 module "vpc" {
   source       = "terraform-google-modules/network/google"
-  version      = "~> 1.0.0"
+  version      = "~> 1.1.0"
   project_id   = "${var.project_id}"
   network_name = "${var.network_name}"
   routing_mode = "GLOBAL"
