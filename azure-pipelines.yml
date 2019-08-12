@@ -90,14 +90,27 @@ jobs:
           export GOPATH=$HOME/go
           export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
           export PACKET_AUTH_TOKEN=$(cat ../packet.token)
-          terraform show
           terraform apply -var-file=$(Agent.TempDirectory)/develop.tfvars \
                           -var 'controller_image=$(controller_image)' \
                           -var 'connector_image=$(connector_image)' \
                           -var 'operator_image=$(operator_image)' \
                           -var 'kubelet_image=$(kubelet_image)' \
                           -var 'agent_repo=$(tf_agent_repo)' \
-                          -var 'agent_version=$(tf_agent_version)' -auto-approve -parallelism=1
+                          -var 'agent_version=$(tf_agent_version)'
+                          -auto-approve -parallelism=1 -target=module.gcp_network
+          RET=$?
+          terraform show
+          if [[ "${RET}" -ne 1 ]]; then
+            exit $RET
+          fi
+          terraform apply -var-file=$(Agent.TempDirectory)/develop.tfvars \
+                          -var 'controller_image=$(controller_image)' \
+                          -var 'connector_image=$(connector_image)' \
+                          -var 'operator_image=$(operator_image)' \
+                          -var 'kubelet_image=$(kubelet_image)' \
+                          -var 'agent_repo=$(tf_agent_repo)' \
+                          -var 'agent_version=$(tf_agent_version)'
+                          -auto-approve -parallelism=1
           RET=$?
           terraform show
           echo
@@ -109,7 +122,7 @@ jobs:
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
         env:
           PACKAGE_CLOUD_TOKEN: $(agentPackageCloudToken)
-        continueOnError: 'true'
+        continueOnError: 'false'
 
       - script: |
           cat iofogctl_inventory.yaml
