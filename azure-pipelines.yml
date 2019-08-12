@@ -100,7 +100,7 @@ jobs:
                           -auto-approve -parallelism=1 -target=module.gcp_network
           RET=$?
           terraform show
-          if [[ "${RET}" -ne 1 ]]; then
+          if [[ "${RET}" -ne 0 ]]; then
             exit $RET
           fi
           terraform apply -var-file=$(Agent.TempDirectory)/develop.tfvars \
