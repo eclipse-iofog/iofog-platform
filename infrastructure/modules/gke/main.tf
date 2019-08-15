@@ -19,6 +19,7 @@ module "gke" {
     regional                    = true
     region                      = "${var.gke_region}"
     network                     = "${var.gke_network_name}"
+    network_project_id          = "${var.project_id}"
     subnetwork                  = "${var.gke_subnetwork}"
     service_account             = "${var.service_account}"
     ip_range_pods               = "${var.gke_network_name}-pods"
