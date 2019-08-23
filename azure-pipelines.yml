@@ -24,6 +24,11 @@ jobs:
           secureFile: 'azure-gcp.json'
 
       - task: DownloadSecureFile@1
+        displayName: 'Download packet token for terraform'
+        inputs:
+          secureFile: packet.token
+
+      - task: DownloadSecureFile@1
         displayName: 'Download secure file for ssh access for agents'
         inputs:
           secureFile: 'azure_ssh_key'
@@ -45,6 +50,7 @@ jobs:
         displayName: 'Setup tools and gcloud credentials'
 
       - script: |
+          cp $(Agent.TempDirectory)/packet.token $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/packet.token
           cp $(Agent.TempDirectory)/azure_ssh_key ~/azure_ssh_key
           chmod 400 ~/azure_ssh_key
         displayName: 'Copy secret files'
@@ -165,9 +171,18 @@ jobs:
           secureFile: 'azure-gcp.json'
 
       - task: DownloadSecureFile@1
+        displayName: 'Download packet token for terraform'
+        inputs:
+          secureFile: packet.token
+
+      - task: DownloadSecureFile@1
         displayName: 'Download terraform vars file for develop'
         inputs:
           secureFile: develop.tfvars
+
+      - script: |
+          cp $(Agent.TempDirectory)/packet.token $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/packet.token
+        displayName: 'Copy secret files'
 
       - script: |
           gcloud auth activate-service-account --key-file "$(Agent.TempDirectory)/azure-gcp.json"
