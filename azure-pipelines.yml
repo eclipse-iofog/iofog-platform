@@ -12,24 +12,8 @@ variables:
   group: 'pipelines'
 
 jobs:
-  - job: Demo
-    dependsOn: Platform
-    pool:
-      vmImage: 'Ubuntu-16.04'
-
-    steps:
-      - task: DownloadSecureFile@1
-        displayName: 'Download secure file - healthcare microservice app config'
-        inputs:
-          secureFile: 'develop-msv-config.yaml'
-
-      # Installation will fail if develop environment is not up and running
-      - script: |
-          iofogctl get all
-          iofogctl -q -v deploy application -f  $(Agent.TempDirectory)/develop-msv-config.yaml
-        displayName: 'Deploy health app to develop'
-
   - job: Platform
+    timeoutInMinutes: 30
     pool:
       name: 'GCP Ubuntu 1604'
 
@@ -38,11 +22,6 @@ jobs:
         displayName: 'Download secure file for azure to access gcp'
         inputs:
           secureFile: 'azure-gcp.json'
-
-      - task: DownloadSecureFile@1
-        displayName: 'Download packet token for terraform'
-        inputs:
-          secureFile: packet.token
 
       - task: DownloadSecureFile@1
         displayName: 'Download secure file for ssh access for agents'
@@ -66,10 +45,13 @@ jobs:
         displayName: 'Setup tools and gcloud credentials'
 
       - script: |
-          cp $(Agent.TempDirectory)/packet.token $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/packet.token
           cp $(Agent.TempDirectory)/azure_ssh_key ~/azure_ssh_key
           chmod 400 ~/azure_ssh_key
         displayName: 'Copy secret files'
+
+      - script: |
+          rm -rf ~/.iofog
+        displayName: 'Delete iofogctl state'
 
       - script: |
           terraform init
@@ -77,18 +59,10 @@ jobs:
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
 
       - script: |
-          terraform show
           terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
-          RET=$?
-          terraform show
-          exit $RET
         displayName: 'Destroy existing infrastructure'
         continueOnError: 'true'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
-
-      - script: |
-          rm -rf ~/.iofog
-        displayName: 'Delete iofogctl state'
 
       - script: |
           terraform apply -var-file=$(Agent.TempDirectory)/develop.tfvars \
@@ -158,3 +132,56 @@ jobs:
           testResultsFiles: 'TEST-*.xml'
           searchFolder: '$(Agent.TempDirectory)/test-results'
         displayName: 'Publish Test Results'
+
+  - job: Demo
+    dependsOn: Platform
+    timeoutInMinutes: 15
+    pool:
+      vmImage: 'Ubuntu-16.04'
+
+    steps:
+      - task: DownloadSecureFile@1
+        displayName: 'Download secure file - healthcare microservice app config'
+        inputs:
+          secureFile: 'develop-msv-config.yaml'
+
+      # Installation will fail if develop environment is not up and running
+      - script: |
+          iofogctl get all
+          iofogctl -q -v deploy application -f  $(Agent.TempDirectory)/develop-msv-config.yaml
+        displayName: 'Deploy health app to develop'
+
+  - job: Cleanup
+    dependsOn: ["Platform","Demo"]
+    condition: always()
+    timeoutInMinutes: 15
+    pool:
+      vmImage: 'Ubuntu-16.04'
+
+    steps:
+      - task: DownloadSecureFile@1
+          displayName: 'Download secure file for azure to access gcp'
+          inputs:
+            secureFile: 'azure-gcp.json'
+
+      - task: DownloadSecureFile@1
+        displayName: 'Download terraform vars file for develop'
+        inputs:
+          secureFile: develop.tfvars
+
+      - script: |
+          gcloud auth activate-service-account --key-file "$(Agent.TempDirectory)/azure-gcp.json"
+          gcloud --quiet config set project focal-freedom-236620
+          echo "##vso[task.setvariable variable=GOOGLE_APPLICATION_CREDENTIALS]$(Agent.TempDirectory)/azure-gcp.json"
+        displayName: 'Setup gcloud credentials'
+
+      - script: |
+          terraform init
+        displayName: 'Init terraform'
+        workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
+
+      - script: |
+          terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
+        displayName: 'Destroy existing infrastructure'
+        workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
+
