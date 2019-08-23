@@ -160,9 +160,9 @@ jobs:
 
     steps:
       - task: DownloadSecureFile@1
-          displayName: 'Download secure file for azure to access gcp'
-          inputs:
-            secureFile: 'azure-gcp.json'
+        displayName: 'Download secure file for azure to access gcp'
+        inputs:
+          secureFile: 'azure-gcp.json'
 
       - task: DownloadSecureFile@1
         displayName: 'Download terraform vars file for develop'
