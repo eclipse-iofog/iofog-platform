@@ -136,10 +136,6 @@ echoError() {
 }
 
 function versionCompare() {
-    echo "$@"
-    echo "|$1|"
-    echo "|$2|"
-    echo "|`printf '%s\n' "$@" | sort -V | head -n 1`|"
     test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1";
 }
 
