@@ -217,24 +217,29 @@ check_tf() {
             if [[ "${VERIFY}" -eq 1 ]]; then
                 return 1
             else
+                echoInfo "Installing Terraform version: ${TERRAFORM_VERSION}"
                 install_tf_by_os
+                return $?
             fi
-        elif [[ "$(terraform --version | grep 'Terraform v' | awk '{print $2}')" != "v$TERRAFORM_VERSION" ]]; then
-            echoInfo "Found terraform version: $(terraform --version | grep 'Terraform v' | awk '{print $2}')."
+        fi
+        local CURRENT_TERRAFORM_VERSION=$(terraform --version | sed -n 's/.* v\([0-9.]*\)$/\1/p')
+        echoInfo "Found Terraform version: ${CURRENT_TERRAFORM_VERSION}"
+        if versionCompare $TERRAFORM_VERSION $CURRENT_TERRAFORM_VERSION; then
             if [[ "${VERIFY}" -eq 1 ]]; then
-              echoError "Terraform version is not same as v${TERRAFORM_VERSION}!"
-              return 1
+                echoError "Terraform version insufficient! Expected at least ${TERRAFORM_VERSION}!"
+                return 1
             else
-              echoInfo "Installing version: v$TERRAFORM_VERSION"
-              install_tf_by_os
+                echoInfo "Terraform version insufficient! Expected at least ${TERRAFORM_VERSION}!"
+                echoInfo "Installing Terraform version: v${TERRAFORM_VERSION}"
+                install_tf_by_os
+                return $?
             fi
         else
-            echoSuccess "terraform found in path!"
-            terraform --version    
+            echoSuccess "Terraform version ${CURRENT_TERRAFORM_VERSION} found in path! Required ${TERRAFORM_VERSION}."
+            terraform --version
             echo ""
             return 0
         fi
-        return $?
     } || { # Catch
         help_install_tf
         return 1
