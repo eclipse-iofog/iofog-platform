@@ -10,6 +10,10 @@
 #  * SPDX-License-Identifier: EPL-2.0
 #  *******************************************************************************
 #
+set -o errexit -o pipefail -o noclobber -o nounset
+
+cd "$(dirname "$0")"
+
 . ./scripts/utils.sh
 
 usage() {
@@ -19,7 +23,7 @@ usage() {
     echoInfo "--only-clean-state will only clean the terraform state files."
     exit 0
 }
-if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
+if [[ "${1-}" == "--help" ]] || [[ "${1-}" == "-h" ]]; then
   usage
 fi
 
@@ -29,7 +33,7 @@ cleanTerrformStateFiles() {
   rm -rf iofogctl_inventory.yaml
 }
 
-if [[ "$1" == "--only-clean-state" ]]; then
+if [[ "${1-}" == "--only-clean-state" ]]; then
   prettyHeader "Deleting terraform state"
   cd ./infrastructure/environments_gke/user/
   cleanTerrformStateFiles

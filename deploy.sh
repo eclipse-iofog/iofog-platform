@@ -10,10 +10,10 @@
 #  * SPDX-License-Identifier: EPL-2.0
 #  *******************************************************************************
 #
+set -o errexit -o pipefail -o noclobber -o nounset
 
-#
-# Print out our usage
-#
+cd "$(dirname "$0")"
+
 . ./scripts/utils.sh
 
 usage() {
@@ -23,7 +23,7 @@ usage() {
     exit 0
 }
 
-if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
+if [[ "${1-}" == "--help" ]] || [[ "${1-}" == "-h" ]]; then
   usage
 fi
 
@@ -43,6 +43,9 @@ cp ./my_vars.tfvars "$TERRAFORM_FOLDER/user_vars.tfvars"
 
 # Generate main.tf file
 . ./scripts/generate_terraform_main.sh
+
+# Create kubeconfig file here
+export KUBECONFIG=$PWD/kubeconfig
 
 # Set current working dir to the terraform gke environment user
 cd "$TERRAFORM_FOLDER"
