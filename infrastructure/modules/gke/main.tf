@@ -72,8 +72,18 @@ module "gke" {
 }
 
 resource "null_resource" "fetch_kubeconfig" {
+    triggers = {
+        hash = sha1(fileexists("${var.gke_name}.kubeconfig") ? file("${var.gke_name}.kubeconfig") : timestamp())
+    }
     provisioner "local-exec" {
-        command = "gcloud --quiet beta container clusters get-credentials ${module.gke.name} --region ${module.gke.region} --project ${var.project_id}"
+        environment = {
+            KUBECONFIG = "${var.gke_name}.kubeconfig"
+        }
+        command = "gcloud container clusters get-credentials ${module.gke.name} --region ${module.gke.region} --project ${var.project_id}"
+    }
+    provisioner "local-exec" {
+        when    = "destroy"
+        command = "rm -f ./${var.gke_name}.kubeconfig"
     }
     depends_on = ["module.gke"]
 }

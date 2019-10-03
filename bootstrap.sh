@@ -16,11 +16,11 @@ usage() {
     prettyTitle "iofog Platform Bootstrap"
     echo
     echoInfo "Usage: `basename $0` [-h, --help] [-v, --verify] [--gcloud-service-account KEY_FILE] [--no-auth]"
-    echoInfo "  --verify will only check for dependencies, and will NOT initialise user variable files"
+    echoInfo "  --verify will only check for dependencies"
     echoInfo "  --no-auth will not perform gcloud authentication"
     echoInfo "  --gcloud-service-account KEY_FILE will only perform gcloud authentication using the KEY_FILE as service account"
     echo
-    echoInfo "$0 will install all dependencies and initialise user variables files"
+    echoInfo "$0 will install all dependencies"
     exit 0
 }
 if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
@@ -634,13 +634,6 @@ check_iofogctl
 iofogctl_success=$?
 check_jq
 jq_success=$?
-
-if [[ $VERIFY -ne 1 ]]; then
-    echoInfo "Setting up Terraform files..."
-    cp ./infrastructure/environments_gke/user/vars.template.tfvars ./my_vars.tfvars
-else
-    echo ""
-fi
 
 success=0
 echo ""
