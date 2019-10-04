@@ -87,6 +87,17 @@ module "packet_edge_nodes" {
   environment                 = "${var.environment}"
 }
 
+output "kubeconfig" {
+  value = module.kubernetes.kubeconfig
+}
+
 output "packet_instance_ip_addrs" {
-  value = "${module.packet_edge_nodes.edge_nodes}"
+  value = module.packet_edge_nodes.edge_nodes
+}
+
+output "ecn_yaml" {
+  value = templatefile("${path.module}/../../ecn/template.yaml", {
+    kubeconfig = module.kubernetes.kubeconfig
+    agent_ips = module.packet_edge_nodes.edge_nodes
+  })
 }

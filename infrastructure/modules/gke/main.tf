@@ -73,7 +73,7 @@ module "gke" {
 
 resource "null_resource" "fetch_kubeconfig" {
     triggers = {
-        hash = sha1(fileexists("${var.gke_name}.kubeconfig") ? file("${var.gke_name}.kubeconfig") : timestamp())
+        exists = fileexists("${var.gke_name}.kubeconfig")
     }
     provisioner "local-exec" {
         environment = {

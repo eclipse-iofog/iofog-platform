@@ -23,3 +23,7 @@ output "region" {
     description = "Cluster region"
     value       = "${module.gke.region}"
 }
+
+output "kubeconfig" {
+    value = "${var.gke_name}.kubeconfig"
+}

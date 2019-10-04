@@ -43,7 +43,7 @@ if ! terraform init ; then
     exit 2
 fi
 export KUBECONFIG=$PWD/kubeconfig
-if ! terraform apply -var-file="${TFVARS}" -auto-approve -target=module.packet_edge_nodes.packet_device.x86_node ; then
+if ! terraform apply -var-file="${TFVARS}" -auto-approve ; then
     echoError "Terraform apply failed."
     exit 3
 fi
