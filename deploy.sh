@@ -48,6 +48,7 @@ if ! terraform apply -var-file="${TFVARS}" -auto-approve ; then
     exit 3
 fi
 
-terraform output
+terraform output ecn_yaml > "../../ecn.yaml"
 
-echoSuccess "You are done!"
+echoSuccess "Infrastructure successfully created!"
+echoSuccess "You can now check and modify a generated file 'ecn.yaml', then deploy your first ECN on the new infrastructure using 'iofogctl deploy -f ecn.yaml'"

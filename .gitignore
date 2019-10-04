@@ -1,8 +1,6 @@
 .terraform/
 *tfstate*
-*.zip
-*.retry
-iofogctl_inventory.yaml
 .idea/
-my_credentials.env
-my_vars.tfvars
+*.tfvars
+*.kubeconfig
+ecn.yaml

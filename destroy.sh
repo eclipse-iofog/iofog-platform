@@ -38,9 +38,11 @@ echoInfo "Using ${TFVARS} as variable file"
 
 cd "infrastructure/gcp"
 
-if ! terraform destroy -var-file="${TFVARS}" -auto-approve -target=module.packet_edge_nodes.packet_device.x86_node ; then
+if ! terraform destroy -var-file="${TFVARS}" -auto-approve ; then
     echoError "Terraform destroy failed."
     exit 1
 fi
 
-echoSuccess "You are done!"
+rm -f ecn.yaml
+
+echoSuccess "Infrastructure successfully destroyed!"
