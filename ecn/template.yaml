@@ -1,0 +1,24 @@
+controlplane:
+  iofoguser:
+    name: John
+    surname: Doe
+    email: john.doe@edgeworx.io
+    password: "#Bugs4Fun"
+  controllers:
+    - name: ctrl
+      kubeconfig: ${kubeconfig}
+      replicas: 1
+      servicetype: LoadBalancer
+connectors:
+  - name: connector
+    kubeconfig: ${kubeconfig}
+    replicas: 1
+%{ if length(agent_ips) > 0 ~}
+agents:
+%{ for ip in agent_ips ~}
+- name: agent1
+  user: root
+  host: ${ip}
+  keyfile: ~/.ssh/id_ecdsa
+%{ endfor ~}
+%{ endif }

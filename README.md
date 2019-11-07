@@ -1,93 +1,121 @@
 # Eclipse ioFog Platform
 
-The Eclipse ioFog Platform project provides a means by which to spin up and deploy an Eclipse ioFog stack running
-in the Cloud. Currently, we demonstrate how to achieve this on GKE (Google Kubernetes Engine), although since we are using 
+The Eclipse ioFog Platform project provides means to spin up and deploy minimal infrastructure. Currently, we demonstrate how to achieve this on GKE (Google Kubernetes Engine), although since we are using 
 [Terraform](https://www.terraform.io/) under the covers you can easily extend/contribute to support your preferred 
 cloud infrastructure provider.
 
-# Requirements
+## Required Tools
 
-* [GCloud SDK](https://cloud.google.com/sdk/) 
-* [Terraform](https://www.terraform.io/) (v0.11.x)
-* [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/)
-* [iofogctl](https://github.com/eclipse-iofog/iofogctl)
+In order to setup the infrastructure we will need the following tools:
 
-`./bootstrap.sh` will download those dependencies and initialise terraform variable file `./my_vars.tfvars`.
+- [Terraform](https://www.terraform.io/) (version 0.12.\*, [installation instructions](https://learn.hashicorp.com/terraform/getting-started/install.html))
+- GCloud SDK ([quickstart guide](https://cloud.google.com/sdk/docs/quickstarts))
+- Kubectl ([installation instructions](https://kubernetes.io/docs/tasks/tools/install-kubectl/))
+
+To then install a complete EdgeCompute Network (ECN), we will also need `iofogctl`: 
+
+- [iofogctl](https://github.com/eclipse-iofog/iofogctl) ([installation instructions](../getting-started/quick-start.html))
+
+We don't have to install these tools manually now. Later in the process, we will use a script to download those dependencies and initialise terraform variable file.
+
+Provided script `./bootstrap.sh` will download those dependencies, see details below.
+
+## Required Credentials
+
+### GCP Service Account
+
+First, we need to setup gcloud with our project. We can either establish a service account or use a personal account with GCP. In both cases, the minimal set of IAM roles required is:
+
+- Compute Admin
+- Kubernetes Engine Admin
+- Service Account User
+
+To login with a service account and setup our project, download the service account key file from GCP. Further details on how to setup a service account are available in the [GCP documentation](https://cloud.google.com/video-intelligence/docs/common/auth#set_up_a_service_account).
+
+You can test authenticate gcloud with the newly created service account.
+
+```bash
+gcloud auth activate-service-account --key-file=service-account-key.json
+```
+
+If you no longer have the service account key file, it is possible to [generate another key using gcloud](https://cloud.google.com/sdk/gcloud/reference/iam/service-accounts/keys/create) or using the GCP console.
+
+### Packet API Token
+
+The platform tools also supports deployment of agent nodes on [packet](https://www.packet.com/). This step is entirely optional and is it possible to provide our own machines for ioFog Agents instead.
+
+We will need Packet token to setup packet provider on terraform. First we have to [upload out ssh key](https://support.packet.com/kb/articles/ssh-access) that will be used by automation to add to newly created instances.
+
+Next, retrieve a Packet [auth token](https://support.packet.com/kb/articles/api-integrations) and project ID from Packet website and save it for later.
 
 ## Usage
 
-Run `./bootstrap.sh` to ensure all required dependencies are present and initialise terraform variable file `./my_vars.tfvars`.
+### Bootstrap Platform Tools
 
-If you didn't have `gcloud` prior to running the bootstrap script:
+We can then run bootstrap to install all the required tools. It is possible to skip the installation step if we opt to instead provide the tools ourselves, please consult `./bootsrap.sh --help` for details.
 
-* Authenticate with the gcloud sdk api, you will be prompted at the end of the bootstrap script.
-
-* Please ensure `gcloud` is in your PATH.
-You can do so by running:
-```sh
-  source /usr/local/lib/google-cloud-sdk/completion.bash.inc
-  source /usr/local/lib/google-cloud-sdk/path.bash.inc
+```bash
+./bootstrap.sh --gcloud-service-account service-account-key.json
 ```
 
-Edit the file `./my_vars.tfvars` according to the table below.
+### Modify Configuration File
 
-To deploy your ioFog stack, run `./deploy.sh`
-To destroy your ioFog stack, run `./destroy.sh`
+First create a copy of the variables template file.
 
-| Variables              | Description                                                  |
-| -----------------------|:------------------------------------------------------------:|
-| `google_application_credentials`           | *Path to [gcloud service account json key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys)*                         |
-| `project_id`           | *id of your google platform project*                         |
-| `environment`          | *unique name for your environment*                           |
-| `gcp_region`           | *region to spin up the resources*                            |
-| `controller_image`     | *docker image link for controller setup*                     |
-| `connector_image`      | *docker image link for connector setup*                      |
-| `scheduler_image`      | *docker image link for scheduler setup*                      |
-| `operator_image`       | *docker image link for operator setup*                       |
-| `kubelet_image`        | *docker image link for kubelet setup*                        |
-| `controller_ip`        | *list of edge ips, comma separated to install agent on*      |
-| `iofogUser_name`       | *name for registration with controller*                      |
-| `iofogUser_surname`    | *surname for registration with controller*                   |
-| `iofogUser_email`      | *email to use to register with controller*                   |
-| `iofogUser_password`   | *password(length >=8) for user registeration with controller*|
-| `iofogctl_namespace`   | *namespace to be used with iofogctl commands*                |
-| `agent_list`           | *list of agents to be deployed*                              |
-
-## Agent list
-The variable `agent_list` contains a list of remote hardware on top of which you would like us to deploy an ioFog agent, connect it to the GKE hosted controller, and include it inside our Kubernetes network.
-To do so we require the following information (per remote resource):
-```
- {
-     name = "<AGENT_NAME>", # Name used to register the agent with the controller
-     user = "<AGENT_USER>", # User name for ssh connection into the resource
-     host = "<AGENT_IP>", # host for ssh connection into the resource
-     port = "<SSH_PORT>", # port for ssh connection into the resource
-     keyfile = "<PRIVATE_SSH_KEY>" # Absolute path to the private key used to ssh into the resource
- }
+```bash
+cp infrastructure/gcp/template.tfvars user.tfvars
 ```
 
-## Option to deploy agent nodes on [Packet](https://www.packet.com/)
-On top of providing a list of existing resources in the `agent_list` variable, we support deployment of agent nodes on [packet](https://www.packet.com/) provided you have an account.
-In situations where you do not have your own devices acting as edge nodes, you can sping a few nodes on packet to act as agents. You will need Packet token to setup packet provider on terraform. Also be aware of account limitation for example,unable to spin more than 2 arm nodes per project. 
-You will also need to make sure you have [uploaded an ssh key](https://support.packet.com/kb/articles/ssh-access) on your packet project that will be used by automation to add to newly created instances.
+Now we have to edit the `user.tfvars` file according to our credentials and desired infrastructure. There are three main sections in the file: general variables, agents list and packet variables. Let's start by modifying the following general variables:
 
-Warning: We will look for the `packet_auth_token` variable. If it is defined, we will try to spin up Packet nodes according to the other variables. If it is empty or commented, we will not load anything Packet related.
+| Variables                        | Description                                                  |
+| -------------------------------- |:------------------------------------------------------------:|
+| `google_application_credentials` | Path to the service account key file from [Google Cloud Platform Setup](#google-cloud-platform-setup) |             
+| `gcp_service_account`            | Name of the GCP service account |
+| `project_id`                     | GCP project ID |
+| `environment`                    | Name of the infrastructure (to identify the resources on GCP and Packet) |   
+| `gcp_region`                     | Region if GCP infrastructure |
+| `packet_auth_token`              | Packet API key from [Packet Setup (Optional)](#packet-setup-optional) (Optional) |       
+| `packet_project_id`              | Packet project ID (Optional) |
+| `packet_operating_system`        | Packet operating system of all agents (Optional) |       
+| `packet_facility`                | Packet regions (called facilities) (Optional) |       
+| `packet_count_x86`               | Packet number of x86 instances (Optional) |
+| `packet_plan_x86`                | Packet plan of x86 instances (Optional) |   
+| `packet_count_arm`               | Packet number of arm instances (Optional) |       
+| `packet_plan_arm`                | Packet plan of arm instances (Optional) |   
 
-Additional variables:
 
-| Variables              | Description                                                  |
-| -----------------------|:------------------------------------------------------------:|
-| `packet_auth_token`    | *packet [auth token](https://support.packet.com/kb/articles/api-integrations)*                 |
-| `packet_project_id`    | *packet project id to spin agents on packet*                 |
-| `operating_system`     | *operating system for edge nodes on packet*                  |
-| `packet_facility`      | *facilities to use to drop agents*                           |
-| `count_x86`            | *number of x86(make sure your project plan allow)*           |
-| `plan_x86`             | *server plan for device on x86 available on facility chosen* |
-| `count_arm`            | *number of arm agents to spin up*                            |
-| `plan_arm`             | *server plan for device on arm available on facility chosen* |
-| `ssh_key`              | *path to ssh key to be used for accessing packet edge nodes* |
+### Deploy and Destroy Infrastructure
 
-### Helpful Commands
+To deploy the new infrastructure, run:
+
+```bash
+./deploy.sh user.tfvars
+```
+
+### Interact With Newly Deployed Infrastructure
+
+Once the infrastructure is successfully deployed, we should be able to interact with the Kubernetes cluster. Terraform automatically setup our [kubeconfig](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/) for us. To use the newly created Kubernetes cluster, we need to define `KUBECONFIG` environment variable to point to a kubeconfig file created by Terraform. The kubeconfig file is always in `infrastructure/gcp/<environment>.kubeconfig`, where `<environemnt>` corresponds to the settings passed in our `user.tfvars` file.
+
+```bash
+export KUBECONFIG="$PWD/infrastructure/gcp/<environment>.kubeconfig"
+```
+
+Should we need to retrieve kubeconfig for our new cluster anytime in the future or from another machine, we can use `gcloud container clusters get-credentials environment --region gcp_region`, where `environment` and `gcp_region` refer to previously described variables.
+
+Terraform generated `ecn.yaml` file according to [iofogctl specification](../tools/iofogctl/stack-yaml-spec.md). Most important are `kubeconfig` and `keyfile` parameters. The `kubeconfig` variable is the same as in [Interact With Newly Deployed Infrastructure](#interact-with-newly-deployed-infrastructure). `keyfile` refers to a private SSH key to access the given agent. For Packet agents, these must be uploaded to Packet according to [Packet Setup (Optional)](#packet-setup-optional). This is also where we can add additional agents (outside of the new infrastructure). 
+
+### Destroy Infrastructure
+
+To destroy the infrastructure (and all deployed ECNs), run:
+
+```bash
+./destroy.sh user.tfvars
+```
+
+Make sure the `tfvars` file is the same for both deploy and destroy invocations.
+
+## Helpful Commands
 
 - Login to gcloud: `gcloud auth login`
 

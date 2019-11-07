@@ -8,7 +8,6 @@ variable "gke_region"           {}
 variable "gke_network_name"     {}
 variable "gke_subnetwork"       {}
 variable "service_account"      {}
-variable "google_compute_firewall_creation_timestamp" {}
 
 # Use GKE module to setup a k8s cluster with specified node pool
 module "gke" {
@@ -73,8 +72,18 @@ module "gke" {
 }
 
 resource "null_resource" "fetch_kubeconfig" {
+    triggers = {
+        exists = tostring(fileexists("${var.gke_name}.kubeconfig"))
+    }
     provisioner "local-exec" {
-        command = "gcloud --quiet beta container clusters get-credentials ${module.gke.name} --region ${module.gke.region} --project ${var.project_id}"
+        environment = {
+            KUBECONFIG = "${var.gke_name}.kubeconfig"
+        }
+        command = "gcloud container clusters get-credentials ${module.gke.name} --region ${module.gke.region} --project ${var.project_id}"
+    }
+    provisioner "local-exec" {
+        when    = "destroy"
+        command = "rm -f ./${var.gke_name}.kubeconfig"
     }
     depends_on = ["module.gke"]
 }
