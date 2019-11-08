@@ -12,7 +12,7 @@ variable "packet_project_id" {
   default = ""
 }
 variable "packet_operating_system" {
-  default =  "ubuntu_16_04"
+  default = "ubuntu_16_04"
 }
 variable "packet_count_x86" {
   default = "0"

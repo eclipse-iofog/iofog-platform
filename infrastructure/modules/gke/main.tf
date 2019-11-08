@@ -72,9 +72,6 @@ module "gke" {
 }
 
 resource "null_resource" "fetch_kubeconfig" {
-    triggers = {
-        exists = tostring(fileexists("${var.gke_name}.kubeconfig"))
-    }
     provisioner "local-exec" {
         environment = {
             KUBECONFIG = "${var.gke_name}.kubeconfig"
