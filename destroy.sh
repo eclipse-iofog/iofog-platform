@@ -21,6 +21,10 @@ usage() {
     echoInfo "$0 will destroy minimal infrastructure: VPC, GKE, Packet nodes"
 }
 
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
 if [[ "${1-}" == "--help" ]] || [[ "${1-}" == "-h" ]]; then
   usage
   exit 0

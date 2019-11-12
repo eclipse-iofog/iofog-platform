@@ -33,7 +33,6 @@ variable "plan_arm" {
 
 variable "facility" {
   type = list(string)
-
 }
 
 provider "packet" {
