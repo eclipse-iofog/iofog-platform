@@ -32,16 +32,16 @@ variable "packet_facility" {
 }
 
 provider "google" {
-    version                     = "~> 2.7.0"
-    credentials                 = "${file("${var.google_application_credentials}")}"
-    project                     = "${var.project_id}"
-    region                      = "${var.gcp_region}"
+    version                     = "~> 2.19.0"
+    credentials                 = file(var.google_application_credentials)
+    project                     = var.project_id
+    region                      = var.gcp_region
 }
 
 provider "google-beta" {
-    version                     = "~> 2.7.0"
-    region                      = "${var.gcp_region}"
-    credentials                 = "${file("${var.google_application_credentials}")}"
+    version                     = "~> 2.19.0"
+    region                      = var.gcp_region
+    credentials                 = file(var.google_application_credentials)
 }
 
 
@@ -76,15 +76,15 @@ module "kubernetes" {
 module "packet_edge_nodes" {
   source  = "../modules/packet_edge_nodes"
 
-  packet_auth_token           = "${var.packet_auth_token}"
-  project_id                  = "${var.packet_project_id}"
-  operating_system            = "${var.packet_operating_system}"
-  facility                    = "${var.packet_facility}"
-  count_x86                   = "${var.packet_count_x86}"
-  plan_x86                    = "${var.packet_plan_x86}"
-  count_arm                   = "${var.packet_count_arm}"
-  plan_arm                    = "${var.packet_plan_arm}"
-  environment                 = "${var.environment}"
+  packet_auth_token           = var.packet_auth_token
+  project_id                  = var.packet_project_id
+  operating_system            = var.packet_operating_system
+  facility                    = var.packet_facility
+  count_x86                   = var.packet_count_x86
+  plan_x86                    = var.packet_plan_x86
+  count_arm                   = var.packet_count_arm
+  plan_arm                    = var.packet_plan_arm
+  environment                 = var.environment
 }
 
 output "kubeconfig" {
