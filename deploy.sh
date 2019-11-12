@@ -43,6 +43,10 @@ if ! terraform init ; then
     exit 2
 fi
 export KUBECONFIG=$PWD/kubeconfig
+if ! terraform apply -var-file="${TFVARS}" -target=module.gcp_network -auto-approve ; then
+    echoError "Terraform apply failed (-target=module.gcp_network)."
+    exit 3
+fi
 if ! terraform apply -var-file="${TFVARS}" -auto-approve ; then
     echoError "Terraform apply failed."
     exit 3
