@@ -66,9 +66,10 @@ jobs:
         displayName: 'Delete iofogctl state'
 
       - script: |
-          cat ecn.yaml
+          cat ecn.yaml | docker run -i --rm mikefarah/yq yq w -d2 - spec.ssh.keyFile "$PWD/azure_ssh_key" > fixed.ecn.yaml
+          cat fixed.ecn.yaml
           iofogctl create namespace iofog
-          iofogctl -n iofog deploy -f ecn.yaml
+          iofogctl -n iofog deploy -v -f fixed.ecn.yaml
         displayName: 'Deploy ECN'
 
       - script: |
