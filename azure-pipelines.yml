@@ -15,7 +15,9 @@ pr:
 variables:
   group: 'pipelines'
 
-jobs:
+stages:
+- stage: Deploy
+  jobs:
   - job: Platform
     timeoutInMinutes: 30
     pool:
@@ -27,12 +29,6 @@ jobs:
         displayName: 'Download secure file for azure to access gcp'
         inputs:
           secureFile: 'azure-gcp.json'
-
-      - task: DownloadSecureFile@1
-        name: azureSshKey
-        displayName: 'Download secure file for ssh access for agents'
-        inputs:
-          secureFile: 'azure_ssh_key'
 
       - task: DownloadSecureFile@1
         name: cicdTfvars
@@ -51,8 +47,6 @@ jobs:
         displayName: 'Setup tools and gcloud credentials'
 
       - script: |
-          cp $(azureSshKey.secureFilePath) ./azure_ssh_key
-          chmod 400 ./azure_ssh_key
           cp $(cicdTfvars.secureFilePath) ./infrastructure/gcp
           cp $(azureGcpJson.secureFilePath) ./azure-gcp.json
         displayName: 'Copy secret files'
@@ -61,25 +55,56 @@ jobs:
           ./deploy.sh infrastructure/gcp/cicd.tfvars
         displayName: 'Deploy infrastructure'
 
+      - publish: $(System.DefaultWorkingDirectory)/ecn.yaml
+        artifact: ecn.yaml
+
+      - publish: $(System.DefaultWorkingDirectory)/infrastructure/gcp/cicd.kubeconfig
+        artifact: cicd.kubeconfig
+
+- stage: Tests
+  jobs:
+    - job: Deploy_ECN
+      timeoutInMinutes: 30
+      pool:
+        name: 'GCP Ubuntu 1604'
+
+      steps:
+      - download: current
+
+      - task: DownloadSecureFile@1
+        name: azureSshKey
+        displayName: 'Download secure file for ssh access for agents'
+        inputs:
+          secureFile: 'azure_ssh_key'
+
+      - script: |
+          cp $(azureSshKey.secureFilePath) ./azure_ssh_key
+          chmod 400 ./azure_ssh_key
+        displayName: 'Copy secret files'
+
       - script: |
           rm -rf ~/.iofog
         displayName: 'Delete iofogctl state'
 
       - script: |
-          cat ecn.yaml | docker run -i --rm mikefarah/yq yq w -d2 - spec.ssh.keyFile "$PWD/azure_ssh_key" > fixed.ecn.yaml
-          cat fixed.ecn.yaml
+          ls -lR $(Pipeline.Workspace)
+          cat "$(Pipeline.Workspace)/ecn.yaml" | \
+            docker run -i --rm mikefarah/yq yq w -d0 - 'spec.controllers[0].kube.config' $(Pipeline.Workspace)/cicd.kubeconfig | \
+            docker run -i --rm mikefarah/yq yq w -d1 - 'spec.kube.config' $(Pipeline.Workspace)/cicd.kubeconfig | \
+            docker run -i --rm mikefarah/yq yq w -d2 - 'spec.ssh.keyFile' "$PWD/azure_ssh_key" > ecn.yaml
+          cat ecn.yaml
           iofogctl create namespace iofog
-          iofogctl -n iofog deploy -v -f fixed.ecn.yaml
+          iofogctl -n iofog deploy -v -f ecn.yaml
         displayName: 'Deploy ECN'
 
       - script: |
-          export KUBECONFIG=$PWD/infrastructure/gcp/cicd.kubeconfig
+          export KUBECONFIG="$(Pipeline.Workspace)/cicd.kubeconfig"
           kubectl get all -n iofog -o wide
         displayName: 'Print all GKE resources deployed'
 
       - script: |
           set -o errexit -o pipefail
-          export KUBECONFIG=$PWD/infrastructure/gcp/cicd.kubeconfig
+          export KUBECONFIG="$(Pipeline.Workspace)/cicd.kubeconfig"
 
           CONTROLLER_IP=$(kubectl -n iofog get service controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
           CONTROLLER_EMAIL=$(cat ecn.yaml | docker run -i --rm mikefarah/yq yq r -d0 - spec.iofogUser.email)
@@ -116,6 +141,8 @@ jobs:
           searchFolder: '$(Agent.TempDirectory)/test-results'
         displayName: 'Publish Test Results'
 
+- stage: Cleanup
+  jobs:
   - job: Cleanup
     dependsOn: ["Platform"]
     condition: always()
