@@ -87,10 +87,9 @@ stages:
         displayName: 'Delete iofogctl state'
 
       - script: |
-          ls -lR $(Pipeline.Workspace)
-          cat "$(Pipeline.Workspace)/ecn.yaml" | \
-            docker run -i --rm mikefarah/yq yq w -d0 - 'spec.controllers[0].kube.config' $(Pipeline.Workspace)/cicd.kubeconfig | \
-            docker run -i --rm mikefarah/yq yq w -d1 - 'spec.kube.config' $(Pipeline.Workspace)/cicd.kubeconfig | \
+          cat "$(Pipeline.Workspace)/ecn.yaml/ecn.yaml" | \
+            docker run -i --rm mikefarah/yq yq w -d0 - 'spec.controllers[0].kube.config' $(Pipeline.Workspace)/cicd.kubeconfig/cicd.kubeconfig | \
+            docker run -i --rm mikefarah/yq yq w -d1 - 'spec.kube.config' $(Pipeline.Workspace)/cicd.kubeconfig/cicd.kubeconfig | \
             docker run -i --rm mikefarah/yq yq w -d2 - 'spec.ssh.keyFile' "$PWD/azure_ssh_key" > ecn.yaml
           cat ecn.yaml
           iofogctl create namespace iofog
@@ -98,13 +97,13 @@ stages:
         displayName: 'Deploy ECN'
 
       - script: |
-          export KUBECONFIG="$(Pipeline.Workspace)/cicd.kubeconfig"
+          export KUBECONFIG="$(Pipeline.Workspace)/cicd.kubeconfig/cicd.kubeconfig"
           kubectl get all -n iofog -o wide
         displayName: 'Print all GKE resources deployed'
 
       - script: |
           set -o errexit -o pipefail
-          export KUBECONFIG="$(Pipeline.Workspace)/cicd.kubeconfig"
+          export KUBECONFIG="$(Pipeline.Workspace)/cicd.kubeconfig/cicd.kubeconfig"
 
           CONTROLLER_IP=$(kubectl -n iofog get service controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
           CONTROLLER_EMAIL=$(cat ecn.yaml | docker run -i --rm mikefarah/yq yq r -d0 - spec.iofogUser.email)
