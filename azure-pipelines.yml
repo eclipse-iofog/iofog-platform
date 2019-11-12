@@ -142,10 +142,11 @@ stages:
         displayName: 'Publish Test Results'
 
 - stage: Cleanup
+  dependsOn: ["Deploy"]
+  condition: False
+#  condition: always()
   jobs:
   - job: Cleanup
-    dependsOn: ["Platform"]
-    condition: always()
     timeoutInMinutes: 15
     pool:
       name: 'GCP Ubuntu 1604'
