@@ -1,6 +1,11 @@
 variable "google_application_credentials"           {}
 variable "project_id"           {}
 variable "environment"          {}
+variable "randomized_name" {
+  description = "Add randomized suffix to all resources created in order to allow for concurrent deployments"
+  type = bool
+  default = false
+}
 variable "gcp_region"           {}
 variable "gcp_service_account"  {}
 variable "packet_auth_token" {
@@ -44,6 +49,23 @@ provider "google-beta" {
     credentials                 = file(var.google_application_credentials)
 }
 
+resource "random_id" "name_suffix" {
+  keepers = {
+    environemnt = var.environment
+  }
+  byte_length = 4
+  count = var.randomized_name ? 1 : 0
+}
+
+locals {
+  # Unique platform deployment name to allow for concurrent deployments
+  unique_name = format("%s%s",var.environment,join("",formatlist("-%s", random_id.name_suffix.*.hex)))
+}
+
+output "unique_name" {
+  value = local.unique_name
+}
+
 
 #############################################################
 # Setup network vpc and subnets on GCP
@@ -52,7 +74,7 @@ module "gcp_network" {
   source = "../modules/vpc"
 
   project_id   = var.project_id
-  network_name = var.environment
+  network_name = local.unique_name
   region       = var.gcp_region
 }
 
@@ -63,7 +85,7 @@ module "kubernetes" {
   source = "../modules/gke"
 
   project_id       = var.project_id
-  gke_name         = var.environment
+  gke_name         = local.unique_name
   gke_region       = var.gcp_region
   gke_network_name = module.gcp_network.network_name
   gke_subnetwork   = module.gcp_network.subnets_names[0]
@@ -84,7 +106,7 @@ module "packet_edge_nodes" {
   plan_x86                    = var.packet_plan_x86
   count_arm                   = var.packet_count_arm
   plan_arm                    = var.packet_plan_arm
-  environment                 = var.environment
+  environment                 = local.unique_name
 }
 
 output "kubeconfig" {
