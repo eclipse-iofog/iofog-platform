@@ -14,9 +14,11 @@ pr:
 
 variables:
   group: 'pipelines'
+  testsOnly: False
 
 stages:
 - stage: Deploy
+  condition: not(variables['testsOnly'])
   jobs:
   - job: Platform
     timeoutInMinutes: 30
@@ -62,6 +64,9 @@ stages:
         artifact: cicd.kubeconfig
 
 - stage: Tests
+  dependsOn:
+    - Deploy
+  condition: or(variables['testsOnly'], in(dependencies.Deploy.result, 'Succeeded', 'SucceededWithIssues'))
   jobs:
     - job: Deploy_ECN
       timeoutInMinutes: 30
@@ -141,9 +146,10 @@ stages:
         displayName: 'Publish Test Results'
 
 - stage: Cleanup
-  dependsOn: ["Deploy"]
-  condition: False
-#  condition: always()
+  dependsOn:
+    - Deploy
+    - Tests
+  condition: not(variables['testsOnly'])
   jobs:
   - job: Cleanup
     timeoutInMinutes: 15
