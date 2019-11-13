@@ -18,7 +18,7 @@ variables:
 
 stages:
 - stage: Deploy
-  condition: not(variables['testsOnly'])
+  condition: eq(variables['testsOnly'], False)
   jobs:
   - job: Platform
     timeoutInMinutes: 30
@@ -159,7 +159,7 @@ stages:
   dependsOn:
     - Deploy
     - Tests
-  condition: not(variables['testsOnly'])
+  condition: eq(variables['testsOnly'], False)
   jobs:
   - job: Cleanup
     timeoutInMinutes: 15
