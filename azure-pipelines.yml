@@ -117,7 +117,7 @@ stages:
           CONTROLLER_IP=$(kubectl -n iofog get service controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
           CONTROLLER_EMAIL=$(cat ecn.yaml | docker run -i --rm mikefarah/yq yq r -d0 - spec.iofogUser.email)
           CONTROLLER_PASSWORD=$(cat ecn.yaml | docker run -i --rm mikefarah/yq yq r -d0 - spec.iofogUser.password)
-          AGENT_USER=$(cat ecn.yaml | docker run -i --rm mikefarah/yq yq r -d0 - spec.iofogUser.email)
+          AGENT_USER=$(cat ecn.yaml | docker run -i --rm mikefarah/yq yq r -d2 - spec.ssh.user)
           AGENT_HOST=$(cat ecn.yaml | docker run -i --rm mikefarah/yq yq r -d2 - spec.host)
           AGENT_PORT=22
 
@@ -132,8 +132,8 @@ stages:
           mkdir "$(Agent.TempDirectory)/test-results"
           sudo docker pull gcr.io/focal-freedom-236620/test-runner:latest
           sudo docker run --rm --name test-runner \
-              -v "$(Agent.TempDirectory)/azure_ssh_key":/root/.ssh/id_rsa \
-              -v "$(Agent.TempDirectory)/test-results":/test-results \
+              -v "$PWD/azure_ssh_key":/root/.ssh/id_rsa \
+              -v "$(Agent.TempDirectory)/test-results":/root/test-results \
               -e CONTROLLER="${CONTROLLER_IP}:51121" \
               -e CONTROLLER_EMAIL="${CONTROLLER_EMAIL}" \
               -e CONTROLLER_PASSWORD="${CONTROLLER_PASSWORD}" \
