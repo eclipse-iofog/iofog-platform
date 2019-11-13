@@ -97,6 +97,9 @@ stages:
             docker run -i --rm mikefarah/yq yq w -d1 - 'spec.kube.config' $(Pipeline.Workspace)/cicd.kubeconfig/cicd.kubeconfig | \
             docker run -i --rm mikefarah/yq yq w -d2 - 'spec.ssh.keyFile' "$PWD/azure_ssh_key" > ecn.yaml
           cat ecn.yaml
+        displayName: 'Prepare ECN configuration yaml file'
+
+      - script: |
           iofogctl create namespace iofog
           iofogctl -n iofog deploy -v -f ecn.yaml
         displayName: 'Deploy ECN'
@@ -105,6 +108,7 @@ stages:
           export KUBECONFIG="$(Pipeline.Workspace)/cicd.kubeconfig/cicd.kubeconfig"
           kubectl get all -n iofog -o wide
         displayName: 'Print all GKE resources deployed'
+        condition: always()
 
       - script: |
           set -o errexit -o pipefail
@@ -126,6 +130,7 @@ stages:
 
           gcloud auth configure-docker --quiet
           mkdir "$(Agent.TempDirectory)/test-results"
+          sudo docker pull gcr.io/focal-freedom-236620/test-runner:latest
           sudo docker run --rm --name test-runner \
               -v "$(Agent.TempDirectory)/azure_ssh_key":/root/.ssh/id_rsa \
               -v "$(Agent.TempDirectory)/test-results":/test-results \
@@ -136,6 +141,11 @@ stages:
               gcr.io/focal-freedom-236620/test-runner:latest
           ls "$(Agent.TempDirectory)/test-results"
         displayName: 'Run Tests'
+
+      - script: |
+          iofogctl -n iofog delete -v -f ecn.yaml
+          iofogctl delete namespace iofog
+        displayName: 'Delete ECN'
 
       # Publish Test Results
       - task: PublishTestResults@2
