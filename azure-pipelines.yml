@@ -57,6 +57,11 @@ stages:
           ./deploy.sh infrastructure/gcp/cicd.tfvars
         displayName: 'Deploy infrastructure'
 
+      - script: |
+          mv $(terraform output kubeconfig) cicd.kubeconfig
+        displayName: 'Deploy infrastructure'
+        workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/gcp
+
       - publish: $(System.DefaultWorkingDirectory)/ecn.yaml
         artifact: ecn.yaml
 
