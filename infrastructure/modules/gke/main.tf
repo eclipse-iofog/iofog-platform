@@ -11,38 +11,39 @@ variable "service_account"      {}
 
 # Use GKE module to setup a k8s cluster with specified node pool
 module "gke" {
-    source                      = "terraform-google-modules/kubernetes-engine/google"
-    version                     = "4.1.0"
-    project_id                  = "${var.project_id}"
-    name                        = "${var.gke_name}"
-    regional                    = true
-    region                      = "${var.gke_region}"
-    network                     = "${var.gke_network_name}"
-    network_project_id          = "${var.project_id}"
-    subnetwork                  = "${var.gke_subnetwork}"
-    service_account             = "${var.service_account}"
-    ip_range_pods               = "${var.gke_network_name}-pods"
-    ip_range_services           = "${var.gke_network_name}-services"
-    http_load_balancing         = false
-    horizontal_pod_autoscaling  = true
-    kubernetes_dashboard        = true
-    network_policy              = true
+    source                     = "terraform-google-modules/kubernetes-engine/google"
+    version                    = "v5.1.1"
+    project_id                 = var.project_id
+    name                       = var.gke_name
+    regional                   = true
+    region                     = var.gke_region
+    network                    = var.gke_network_name
+    network_project_id         = var.project_id
+    subnetwork                 = var.gke_subnetwork
+    service_account            = var.service_account
+    create_service_account     = false
+    ip_range_pods              = "${var.gke_network_name}-pods"
+    ip_range_services          = "${var.gke_network_name}-services"
+    http_load_balancing        = false
+    horizontal_pod_autoscaling = true
+    kubernetes_dashboard       = true
+    network_policy             = true
 
     node_pools = [
-    {
-        name                    = "${var.gke_name}-node-pool"
-        machine_type            = "n1-standard-1"
-        min_count               = 1
-        max_count               = 20
-        disk_size_gb            = 20
-        disk_type               = "pd-standard"
-        image_type              = "COS"
-        auto_repair             = true
-        auto_upgrade            = true
-        service_account         = "${var.service_account}"
-        preemptible             = false
-        initial_node_count      = 1
-    }]
+        {
+            name               = "${var.gke_name}-node-pool"
+            machine_type       = "n1-standard-1"
+            min_count          = 1
+            max_count          = 20
+            disk_size_gb       = 20
+            disk_type          = "pd-standard"
+            image_type         = "COS"
+            auto_repair        = true
+            auto_upgrade       = true
+            service_account    = var.service_account
+            preemptible        = false
+            initial_node_count = 1
+        }]
 
     node_pools_oauth_scopes = {
         all = []
@@ -54,13 +55,9 @@ module "gke" {
         all = ["${var.gke_name}-node-tags",]
         "${var.gke_name}-node-pool" = []
     }
-    node_pools_taints = {
-        all = []
-        "${var.gke_name}-node-pool" = []
-    }
     node_pools_labels = {
         all = {
-            cluster = "${var.gke_name}"
+            cluster = var.gke_name
         }
         "${var.gke_name}-node-pool" = {}
     }

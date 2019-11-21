@@ -1,17 +1,25 @@
 trigger:
   branches:
     include:
+      - master
       - develop
+      - release/*
   paths:
     exclude:
       - README.md
 
-pr: none
+pr:
+  - master
+  - develop
 
 variables:
   group: 'pipelines'
+  testsOnly: False
 
-jobs:
+stages:
+- stage: Deploy
+  condition: eq(variables['testsOnly'], False)
+  jobs:
   - job: Platform
     timeoutInMinutes: 30
     pool:
@@ -19,40 +27,69 @@ jobs:
 
     steps:
       - task: DownloadSecureFile@1
+        name: azureGcpJson
         displayName: 'Download secure file for azure to access gcp'
         inputs:
           secureFile: 'azure-gcp.json'
 
       - task: DownloadSecureFile@1
-        displayName: 'Download packet token for terraform'
+        name: cicdTfvars
+        displayName: 'Download terraform ftvars file fo CICD platform deployment'
         inputs:
-          secureFile: packet.token
+          secureFile: cicd.tfvars
+
+      - script: |
+          curl -s https://packagecloud.io/install/repositories/iofog/iofogctl/script.deb.sh | sudo bash
+          sudo apt-get install --allow-downgrades -y iofogctl=1.3.0-rc2
+        displayName: 'Install iofogctl'
+
+      - script: |
+          ./bootstrap.sh --gcloud-service-account $(azureGcpJson.secureFilePath)
+          echo "##vso[task.setvariable variable=GOOGLE_APPLICATION_CREDENTIALS]$(Agent.TempDirectory)/$(azureGcpJson.secureFilePath)"
+        displayName: 'Setup tools and gcloud credentials'
+
+      - script: |
+          cp $(cicdTfvars.secureFilePath) ./infrastructure/gcp
+          cp $(azureGcpJson.secureFilePath) ./azure-gcp.json
+        displayName: 'Copy secret files'
+
+      - script: |
+          ./deploy.sh infrastructure/gcp/cicd.tfvars
+        displayName: 'Deploy infrastructure'
+
+      - script: |
+          mv $(terraform output kubeconfig) cicd.kubeconfig
+        displayName: 'Deploy infrastructure'
+        workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/gcp
+
+      - publish: $(System.DefaultWorkingDirectory)/ecn.yaml
+        artifact: ecn.yaml
+
+      - publish: $(System.DefaultWorkingDirectory)/infrastructure/gcp/cicd.kubeconfig
+        artifact: cicd.kubeconfig
+
+- stage: Tests
+  dependsOn:
+    - Deploy
+  condition: or(eq(variables['testsOnly'], True), in(dependencies.Deploy.result, 'Succeeded', 'SucceededWithIssues'))
+  jobs:
+    - job: Deploy_ECN
+      timeoutInMinutes: 30
+      pool:
+        name: 'GCP Ubuntu 1604'
+
+      steps:
+      - download: current
 
       - task: DownloadSecureFile@1
+        name: azureSshKey
         displayName: 'Download secure file for ssh access for agents'
         inputs:
           secureFile: 'azure_ssh_key'
 
-      - task: DownloadSecureFile@1
-        displayName: 'Download terraform vars file for develop'
-        inputs:
-          secureFile: develop.tfvars
-
       - script: |
-          . ~/.profile
-          ./bootstrap.sh --gcloud-service-account $(Agent.TempDirectory)/azure-gcp.json
-          . ~/.profile
-          echo "##vso[task.setvariable variable=GOPATH]${GOPATH}"
-          echo "##vso[task.setvariable variable=PATH]${PATH}"
-
-          gcloud --quiet config set project focal-freedom-236620
-          echo "##vso[task.setvariable variable=GOOGLE_APPLICATION_CREDENTIALS]$(Agent.TempDirectory)/azure-gcp.json"
-        displayName: 'Setup tools and gcloud credentials'
-
-      - script: |
-          cp $(Agent.TempDirectory)/packet.token $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/packet.token
-          cp $(Agent.TempDirectory)/azure_ssh_key ~/azure_ssh_key
-          chmod 400 ~/azure_ssh_key
+          cp $(azureSshKey.secureFilePath) ./azure_ssh_key
+          chmod 400 ./azure_ssh_key
         displayName: 'Copy secret files'
 
       - script: |
@@ -60,76 +97,60 @@ jobs:
         displayName: 'Delete iofogctl state'
 
       - script: |
-          terraform init
-        displayName: 'Init terraform'
-        workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
+          cat "$(Pipeline.Workspace)/ecn.yaml/ecn.yaml" | \
+            docker run -i --rm mikefarah/yq yq w -d0 - 'spec.controllers[0].kube.config' $(Pipeline.Workspace)/cicd.kubeconfig/cicd.kubeconfig | \
+            docker run -i --rm mikefarah/yq yq w -d1 - 'spec.kube.config' $(Pipeline.Workspace)/cicd.kubeconfig/cicd.kubeconfig | \
+            docker run -i --rm mikefarah/yq yq w -d2 - 'spec.ssh.keyFile' "$PWD/azure_ssh_key" > ecn.yaml
+          cat ecn.yaml
+        displayName: 'Prepare ECN configuration yaml file'
 
       - script: |
-          terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
-        displayName: 'Destroy existing infrastructure'
-        continueOnError: 'true'
-        workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
-
-      - script: |
-          terraform apply -var-file=$(Agent.TempDirectory)/develop.tfvars \
-                          -auto-approve -parallelism=1 -target=module.gcp_network
-          RET=$?
-          terraform show
-          exit $RET
-        displayName: 'Deploy VPC'
-        workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
-
-      - script: |
-          terraform apply -var-file=$(Agent.TempDirectory)/develop.tfvars \
-                          -auto-approve -parallelism=1 -target=module.kubernetes
-          RET=$?
-          terraform show
-          exit $RET
-        displayName: 'Deploy GKE'
-        workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
-
-      - script: |
-          terraform apply -var-file=$(Agent.TempDirectory)/develop.tfvars \
-                          -var 'controller_image=$(controller_image)' \
-                          -var 'connector_image=$(connector_image)' \
-                          -var 'operator_image=$(operator_image)' \
-                          -var 'kubelet_image=$(kubelet_image)' \
-                          -var 'agent_repo=$(tf_agent_repo)' \
-                          -var 'agent_version=$(tf_agent_version)' \
-                          -auto-approve -parallelism=1
-          RET=$?
-          terraform show
-          exit $RET
+          iofogctl create namespace iofog
+          iofogctl -n iofog deploy -v -f ecn.yaml
         displayName: 'Deploy ECN'
-        workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
 
       - script: |
+          export KUBECONFIG="$(Pipeline.Workspace)/cicd.kubeconfig/cicd.kubeconfig"
           kubectl get all -n iofog -o wide
         displayName: 'Print all GKE resources deployed'
+        condition: always()
 
       - script: |
-          cat iofogctl_inventory.yaml
-          mkdir "$(Agent.TempDirectory)/test-results"
+          set -o errexit -o pipefail
+          export KUBECONFIG="$(Pipeline.Workspace)/cicd.kubeconfig/cicd.kubeconfig"
 
-          CONTROLLER_IP=$(sed -n 's/.*kubecontrollerip: "\([0-9.]*\)"/\1/p' iofogctl_inventory.yaml)
-          AGENT_USER=$(cat iofogctl_inventory.yaml | docker run -i --rm evns/yq 'agents[0].user')
-          AGENT_HOST=$(cat iofogctl_inventory.yaml | docker run -i --rm evns/yq 'agents[0].host')
-          AGENT_PORT=$(cat iofogctl_inventory.yaml | docker run -i --rm evns/yq 'agents[0].port')
-          CONTROLLER_EMAIL=$(cat iofogctl_inventory.yaml | docker run -i --rm evns/yq 'controllers[0].iofoguser.email')
-          CONTROLLER_PASSWORD=$(cat iofogctl_inventory.yaml | docker run -i --rm evns/yq 'controllers[0].iofoguser.password')
+          CONTROLLER_IP=$(kubectl -n iofog get service controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          CONTROLLER_EMAIL=$(cat ecn.yaml | docker run -i --rm mikefarah/yq yq r -d0 - spec.iofogUser.email)
+          CONTROLLER_PASSWORD=$(cat ecn.yaml | docker run -i --rm mikefarah/yq yq r -d0 - spec.iofogUser.password)
+          AGENT_USER=$(cat ecn.yaml | docker run -i --rm mikefarah/yq yq r -d2 - spec.ssh.user)
+          AGENT_HOST=$(cat ecn.yaml | docker run -i --rm mikefarah/yq yq r -d2 - spec.host)
+          AGENT_PORT=22
+
+          echo "CONTROLLER_IP: ${CONTROLLER_IP}"
+          echo "CONTROLLER_EMAIL: ${CONTROLLER_EMAIL}"
+          echo "CONTROLLER_PASSWORD: ${CONTROLLER_PASSWORD}"
+          echo "AGENT_USER: ${AGENT_USER}"
+          echo "AGENT_HOST: ${AGENT_HOST}"
+          echo "AGENT_PORT: ${AGENT_PORT}"
 
           gcloud auth configure-docker --quiet
-          sudo docker run --name test-runner \
-              -v "$(Agent.TempDirectory)/azure_ssh_key":/root/.ssh/id_rsa \
-              -v "$(Agent.TempDirectory)/test-results":/test-results \
+          mkdir "$(Agent.TempDirectory)/test-results"
+          sudo docker pull gcr.io/focal-freedom-236620/test-runner:latest
+          sudo docker run --rm --name test-runner \
+              -v "$PWD/azure_ssh_key":/root/.ssh/id_rsa \
+              -v "$(Agent.TempDirectory)/test-results":/root/test-results \
               -e CONTROLLER="${CONTROLLER_IP}:51121" \
               -e CONTROLLER_EMAIL="${CONTROLLER_EMAIL}" \
               -e CONTROLLER_PASSWORD="${CONTROLLER_PASSWORD}" \
               -e AGENTS="${AGENT_USER}@${AGENT_HOST}:${AGENT_PORT}" \
               gcr.io/focal-freedom-236620/test-runner:latest
           ls "$(Agent.TempDirectory)/test-results"
-        workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop'
-        displayName: 'run tests'
+        displayName: 'Run Tests'
+
+      - script: |
+          iofogctl -n iofog delete -v -f ecn.yaml
+          iofogctl delete namespace iofog
+        displayName: 'Delete ECN'
 
       # Publish Test Results
       - task: PublishTestResults@2
@@ -139,64 +160,40 @@ jobs:
           searchFolder: '$(Agent.TempDirectory)/test-results'
         displayName: 'Publish Test Results'
 
-  - job: Demo
-    dependsOn: Platform
-    timeoutInMinutes: 15
-    pool:
-      vmImage: 'Ubuntu-16.04'
-
-    steps:
-      - task: DownloadSecureFile@1
-        displayName: 'Download secure file - healthcare microservice app config'
-        inputs:
-          secureFile: 'develop-msv-config.yaml'
-
-      # Installation will fail if develop environment is not up and running
-      - script: |
-          iofogctl get all
-          iofogctl -q -v deploy application -f  $(Agent.TempDirectory)/develop-msv-config.yaml
-        displayName: 'Deploy health app to develop'
-
+- stage: Cleanup
+  dependsOn:
+    - Deploy
+    - Tests
+  condition: eq(variables['testsOnly'], False)
+  jobs:
   - job: Cleanup
-    dependsOn: ["Platform","Demo"]
-    condition: always()
     timeoutInMinutes: 15
     pool:
-      vmImage: 'Ubuntu-16.04'
+      name: 'GCP Ubuntu 1604'
 
     steps:
       - task: DownloadSecureFile@1
+        name: azureGcpJson
         displayName: 'Download secure file for azure to access gcp'
         inputs:
           secureFile: 'azure-gcp.json'
 
       - task: DownloadSecureFile@1
-        displayName: 'Download packet token for terraform'
+        displayName: 'Download terraform ftvars file fo CICD platform deployment'
         inputs:
-          secureFile: packet.token
-
-      - task: DownloadSecureFile@1
-        displayName: 'Download terraform vars file for develop'
-        inputs:
-          secureFile: develop.tfvars
+          secureFile: cicd.tfvars
 
       - script: |
-          cp $(Agent.TempDirectory)/packet.token $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/packet.token
+          cp $(cicdTfvars.secureFilePath) ./infrastructure/gcp
+          cp $(azureGcpJson.secureFilePath) ./azure-gcp.json
         displayName: 'Copy secret files'
 
       - script: |
-          gcloud auth activate-service-account --key-file "$(Agent.TempDirectory)/azure-gcp.json"
-          gcloud --quiet config set project focal-freedom-236620
-          echo "##vso[task.setvariable variable=GOOGLE_APPLICATION_CREDENTIALS]$(Agent.TempDirectory)/azure-gcp.json"
-        displayName: 'Setup gcloud credentials'
+          ./bootstrap.sh --gcloud-service-account $(azureGcpJson.secureFilePath)
+          echo "##vso[task.setvariable variable=GOOGLE_APPLICATION_CREDENTIALS]$(Agent.TempDirectory)/$(azureGcpJson.secureFilePath)"
+        displayName: 'Setup tools and gcloud credentials'
 
       - script: |
-          terraform init
-        displayName: 'Init terraform'
-        workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
-
-      - script: |
-          terraform destroy -var-file=$(Agent.TempDirectory)/develop.tfvars -auto-approve
-        displayName: 'Destroy existing infrastructure'
-        workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/environments_gke/develop
+          ./destroy.sh infrastructure/gcp/cicd.tfvars
+        displayName: 'Destroy infrastructure'
 
