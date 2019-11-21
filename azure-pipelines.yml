@@ -58,8 +58,9 @@ stages:
         displayName: 'Deploy infrastructure'
 
       - script: |
+          ls -lR
           mv $(terraform output kubeconfig) cicd.kubeconfig
-        displayName: 'Deploy infrastructure'
+        displayName: 'Rename kubeconfig to remove random suffix'
         workingDirectory: $(System.DefaultWorkingDirectory)/infrastructure/gcp
 
       - publish: $(System.DefaultWorkingDirectory)/ecn.yaml
