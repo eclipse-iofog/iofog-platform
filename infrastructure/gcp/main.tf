@@ -50,9 +50,6 @@ provider "google-beta" {
 }
 
 resource "random_id" "name_suffix" {
-  keepers = {
-    environemnt = var.environment
-  }
   byte_length = 4
   count = var.randomized_name ? 1 : 0
 }
