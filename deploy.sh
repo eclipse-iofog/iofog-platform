@@ -46,6 +46,8 @@ if ! terraform init ; then
     echoError "Terraform init failed"
     exit 2
 fi
+echoInfo "Current terraform resources:"
+terraform show
 export KUBECONFIG=$PWD/kubeconfig
 if ! terraform apply -var-file="${TFVARS}" -target=module.gcp_network -auto-approve ; then
     echoError "Terraform apply failed (-target=module.gcp_network)."
