@@ -10,83 +10,43 @@
 #  * SPDX-License-Identifier: EPL-2.0
 #  *******************************************************************************
 #
+set -o errexit -o pipefail -o noclobber -o nounset
+cd "$(dirname "$0")"
 . ./scripts/utils.sh
 
 usage() {
     echo
-    echoInfo "Usage: `basename $0` [-h, --help] [--only-clean-state]"
-    echoInfo "$0 will destroy a GKE ioFog stack using terraform."
-    echoInfo "--only-clean-state will only clean the terraform state files."
-    exit 0
+    echoInfo "Usage: `basename $0` variables_file.tfvars"
+    echoInfo "       `basename $0` [-h, --help]"
+    echoInfo "$0 will destroy minimal infrastructure: VPC, GKE, Packet nodes"
 }
-if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
+
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+if [[ "${1-}" == "--help" ]] || [[ "${1-}" == "-h" ]]; then
   usage
-fi
-
-cleanTerrformStateFiles() {
-  rm -rf .terraform
-  rm -rf *.tfstate*
-  rm -rf iofogctl_inventory.yaml
-}
-
-if [[ "$1" == "--only-clean-state" ]]; then
-  prettyHeader "Deleting terraform state"
-  cd ./infrastructure/environments_gke/user/
-  cleanTerrformStateFiles
-  echoSuccess "You are done!"
   exit 0
 fi
 
-prettyHeader "Destroying GKE ioFog stack..."
+if [[ ! -r "${1-}" ]]; then
+    echoError "Variables file \"${1-}\" does not exist!"
+    usage
+    exit 1
+fi
+TFVARS=$(realpath "${1-}")
 
-echoInfo "Using ./my_vars.tfvars as variable file"
-echo ""
+prettyHeader "Destroying infrastructure"
+echoInfo "Using ${TFVARS} as variable file"
 
-displayError() {
-  echoError "Something went wrong with your terraform deployment. Please find more informations in the logs above."
-  exit 1
-}
+cd "infrastructure/gcp"
 
-cleanTerrformStateFiles() {
-  rm -rf .terraform
-  rm -rf *.tfstate*
-  rm -rf iofogctl_inventory.yaml
-}
+if ! terraform destroy -var-file="${TFVARS}" -auto-approve ; then
+    echoError "Terraform destroy failed."
+    exit 1
+fi
 
-disconnectIofogctl() {
-  NAMESPACE=$(cat ./user_vars.tfvars | grep iofogctl_namespace | awk '{print $3}' | tr -d \")
-  NAMESPACE="${NAMESPACE:-iofog}"
-  {
-    iofogctl -n $NAMESPACE disconnect
-  } || {
-    echoInfo "Could not disconnect from iofogctl"
-  }
-}
+rm -f ecn.yaml
 
-# Copy user terraform vars
-cp ./my_vars.tfvars ./infrastructure/environments_gke/user/user_vars.tfvars
-
-# Generate main.tf file
-. ./scripts/generate_terraform_main.sh
-
-# Set current working dir to the terraform gke environment user
-cd ./infrastructure/environments_gke/user/
-
-{
-  terraform init
-} || {
-  displayError
-} 
-{
-  disconnectIofogctl
-} || {
-  displayError
-}
-{
-  terraform destroy -var-file="user_vars.tfvars" -auto-approve
-} || {
-  displayError
-}
-cleanTerrformStateFiles
-echo ""
-echoSuccess "You are done!"
+echoSuccess "Infrastructure successfully destroyed!"

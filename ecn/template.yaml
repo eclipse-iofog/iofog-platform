@@ -1,0 +1,40 @@
+---
+apiVersion: iofog.org/v1
+kind: ControlPlane
+metadata:
+  name: albatros
+spec:
+  iofogUser:
+    name: John
+    surname: Doe
+    email: user@domain.com
+    password: "#Bugs4Fun"
+  controllers:
+  - name: ctrl
+    kube:
+      config: infrastructure/gcp/${kubeconfig}
+      replicas: 1
+      serviceType: LoadBalancer
+---
+apiVersion: iofog.org/v1
+kind: Connector
+metadata:
+  name: connector
+spec:
+  kube:
+    config: infrastructure/gcp/${kubeconfig}
+    replicas: 1
+%{ if length(agent_ips) > 0 ~}
+%{ for idx, ip in agent_ips ~}
+---
+apiVersion: iofog.org/v1
+kind: Agent
+metadata:
+  name: agent-${idx}
+spec:
+  host: ${ip}
+  ssh:
+    user: root
+    keyFile: ~/.ssh/id_rsa
+%{ endfor ~}
+%{ endif }

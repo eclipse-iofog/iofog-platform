@@ -135,5 +135,9 @@ echoError() {
 	echo ${PRINTARGS} "${RED} :: $1 ${NO_FORMAT}"
 }
 
+function versionCompare() {
+    test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1";
+}
+
 # Are we in debug mode?
 checkForDebug

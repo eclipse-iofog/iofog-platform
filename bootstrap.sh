@@ -15,15 +15,45 @@
 usage() {
     prettyTitle "iofog Platform Bootstrap"
     echo
-    echoInfo "Usage: `basename $0` [-h, --help] [--verify]"
-    echoInfo "  --verify will only check for dependencies, and will NOT initialise user variable files"
+    echoInfo "Usage: `basename $0` [-h, --help] [-v, --verify] [--gcloud-service-account KEY_FILE] [--no-auth]"
+    echoInfo "  --verify will only check for dependencies"
+    echoInfo "  --no-auth will not perform gcloud authentication"
+    echoInfo "  --gcloud-service-account KEY_FILE will only perform gcloud authentication using the KEY_FILE as service account"
     echo
-    echoInfo "$0 will install all dependencies and initialise user variables files"
+    echoInfo "$0 will install all dependencies"
     exit 0
 }
 if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
   usage
 fi
+
+POSITIONAL_ARGS=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+case $key in
+    -h|--help)
+    usage
+    ;;
+    -v|--verify)
+    VERIFY=1
+    shift # past argument
+    ;;
+    --gcloud-service-account)
+    GCLOUD_KEY_FILE="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --no-auth)
+    NO_AUTH=1
+    shift # past argument
+    ;;
+    *)
+    POSITIONAL_ARGS+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
 
 
 OS=$(uname -s | tr A-Z a-z)
@@ -32,7 +62,7 @@ GCP_SDK_PACKAGE_URL="https://console.cloud.google.com/storage/browser/cloud-sdk-
 GCP_SDK_INSTRUCTION_URL="https://cloud.google.com/sdk/docs/downloads-versioned-archives"
 LIB_LOCATION=/usr/local/lib
 
-TERRAFORM_VERSION=0.11.14
+TERRAFORM_VERSION=0.12.8
 TERRAFORM_PACKAGE_URL="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/"
 TERRAFORM_INSTRUCTION_URL="https://cloud.google.com/sdk/docs/downloads-versioned-archives"
 
@@ -62,6 +92,7 @@ install_gcp() {
         return 1
     else
         echoSuccess "gcloud installed"
+        GCLOUD_INSTALLED=true
         gcloud --version
         echo ""
         return 0
@@ -71,26 +102,31 @@ install_gcp() {
 check_gcp() {
     { # Try
         if [[ -z $(command -v gcloud) ]]; then
-            echoInfo "====> Installing gcloud sdk..."
-            if [[ "$OSTYPE" == "linux-gnu" ]]; then
-                install_gcp "linux"
-            elif [[ "$OSTYPE" == "darwin"* ]]; then
-                # Mac OSX
-                install_gcp "darwin"
-            elif [[ "$OSTYPE" == "cygwin" ]]; then
-                # POSIX compatibility layer and Linux environment emulation for Windows
-                install_gcp "windows"
-            elif [[ "$OSTYPE" == "msys" ]]; then
-                # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
-                install_gcp "windows"
-            elif [[ "$OSTYPE" == "win32" ]]; then
-                # I'm not sure this can happen.
-                install_gcp "windows"
-            elif [[ "$OSTYPE" == "freebsd"* ]]; then
-                install_gcp "linux"
-            else
-                help_install_gcp_sdk
+            echoError "gcloud not found!"
+            if [[ "${VERIFY}" -eq 1 ]]; then
                 return 1
+            else
+                echoInfo "====> Installing gcloud sdk..."
+                if [[ "$OSTYPE" == "linux-gnu" ]]; then
+                    install_gcp "linux"
+                elif [[ "$OSTYPE" == "darwin"* ]]; then
+                    # Mac OSX
+                    install_gcp "darwin"
+                elif [[ "$OSTYPE" == "cygwin" ]]; then
+                    # POSIX compatibility layer and Linux environment emulation for Windows
+                    install_gcp "windows"
+                elif [[ "$OSTYPE" == "msys" ]]; then
+                    # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
+                    install_gcp "windows"
+                elif [[ "$OSTYPE" == "win32" ]]; then
+                    # I'm not sure this can happen.
+                    install_gcp "windows"
+                elif [[ "$OSTYPE" == "freebsd"* ]]; then
+                    install_gcp "linux"
+                else
+                    help_install_gcp_sdk
+                    return 1
+                fi
             fi
         else
             echoSuccess "gcloud found in path!"
@@ -133,9 +169,10 @@ install_tf() {
         }
         
     fi
+
     curl -fSL -o terraform.zip https://releases.hashicorp.com/terraform/"$TERRAFORM_VERSION"/terraform_"$TERRAFORM_VERSION"_"$1"_amd64.zip
     sudo mkdir -p "$LIB_LOCATION"/
-    sudo unzip -q terraform.zip -d "$LIB_LOCATION"/terraform
+    sudo unzip -oq terraform.zip -d "$LIB_LOCATION"/terraform
     rm -f terraform.zip
     sudo ln -Ffs "$LIB_LOCATION"/terraform/terraform /usr/local/bin/terraform
     if [[ -z $(command -v terraform) ]]; then
@@ -149,41 +186,121 @@ install_tf() {
     fi
 }
 
+install_tf_by_os() {
+    if [[ "$OSTYPE" == "linux-gnu" ]]; then
+        install_tf "linux"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        # Mac OSX
+        install_tf "darwin"
+    elif [[ "$OSTYPE" == "cygwin" ]]; then
+        # POSIX compatibility layer and Linux environment emulation for Windows
+        install_tf "windows"
+    elif [[ "$OSTYPE" == "msys" ]]; then
+        # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
+        install_tf "windows"
+    elif [[ "$OSTYPE" == "win32" ]]; then
+        # I'm not sure this can happen.
+        install_tf "windows"
+    elif [[ "$OSTYPE" == "freebsd"* ]]; then
+        install_tf "freebsd"
+    else
+        help_install_tf
+        return 1
+    fi
+    return $?
+}
+
 check_tf() {
     { # Try
         if [[ -z $(command -v terraform) ]]; then
-            if [[ "$OSTYPE" == "linux-gnu" ]]; then
-                install_tf "linux"
-            elif [[ "$OSTYPE" == "darwin"* ]]; then
-                # Mac OSX
-                install_tf "darwin"
-            elif [[ "$OSTYPE" == "cygwin" ]]; then
-                # POSIX compatibility layer and Linux environment emulation for Windows
-                install_tf "windows"
-            elif [[ "$OSTYPE" == "msys" ]]; then
-                # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
-                install_tf "windows"
-            elif [[ "$OSTYPE" == "win32" ]]; then
-                # I'm not sure this can happen.
-                install_tf "windows"
-            elif [[ "$OSTYPE" == "freebsd"* ]]; then
-                install_tf "freebsd"
-            else
-                help_install_tf
+            echoError "Terraform not found!"
+            if [[ "${VERIFY}" -eq 1 ]]; then
                 return 1
+            else
+                echoInfo "Installing Terraform version: ${TERRAFORM_VERSION}"
+                install_tf_by_os
+                return $?
+            fi
+        fi
+        local CURRENT_TERRAFORM_VERSION=$(terraform --version | sed -n 's/.* v\([0-9.]*\)$/\1/p')
+        echoInfo "Found Terraform version: ${CURRENT_TERRAFORM_VERSION}"
+        if versionCompare $TERRAFORM_VERSION $CURRENT_TERRAFORM_VERSION; then
+            if [[ "${VERIFY}" -eq 1 ]]; then
+                echoError "Terraform version insufficient! Expected at least ${TERRAFORM_VERSION}!"
+                return 1
+            else
+                echoInfo "Terraform version insufficient! Expected at least ${TERRAFORM_VERSION}!"
+                echoInfo "Installing Terraform version: v${TERRAFORM_VERSION}"
+                install_tf_by_os
+                return $?
             fi
         else
-            echoSuccess "terraform found in path!"
-            terraform --version    
+            echoSuccess "Terraform version ${CURRENT_TERRAFORM_VERSION} found in path! Required ${TERRAFORM_VERSION}."
+            terraform --version
             echo ""
-            return 0            
+            return 0
         fi
-        return $?
     } || { # Catch
         help_install_tf
         return 1
     }
 }
+
+check_go() {
+    if [[ -z $(command -v go) ]]; then
+        echoError "go not found!"
+        if [[ "${VERIFY}" -eq 1 ]]; then
+            return 1
+        else
+            install_go
+        fi
+    else
+        echoSuccess "go found in path!"
+        go version    
+        echo ""
+        return 0
+    fi
+    return $?
+}
+
+install_go() {
+    if [[ -z "$(command -v go)" ]]; then
+        echoInfo "Installing golang as its a requirement for Terraform"
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            curl -O https://dl.google.com/go/go1.12.7.darwin-amd64.tar.gz
+            sudo tar -xvf go1.12.7.darwin-amd64.tar.gz
+        else
+            curl -O https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
+            sudo tar -xvf go1.12.7.linux-amd64.tar.gz
+        fi
+        
+        sudo chown -R root:root ./go
+        sudo cp -r go /usr/local
+
+        export GOPATH="$HOME/go"
+        grep -qxF "export GOPATH=\"$HOME/go\"" ~/.profile
+        if [[ $? -ne 0 ]]; then
+            echo "export GOPATH=\"$HOME/go\"" >> ~/.profile
+        fi
+
+        export PATH="$PATH:/usr/local/go/bin:$GOPATH/bin"
+        grep -qxF "export PATH=\"$PATH:/usr/local/go/bin:$GOPATH/bin\"" ~/.profile
+        if [[ $? -ne 0 ]]; then
+            echo "export PATH=\"$PATH:/usr/local/go/bin:$GOPATH/bin\"" >> ~/.profile
+        fi
+    else
+        echoSuccess "go installed"
+        go version
+        echo ""
+        return 0   
+    fi
+}
+
+help_install_go() {
+    echoError "We could not automatically install go"
+    echoInfo "Please download the relevant zip package according to your operating system."
+}
+
 
 #
 # Check between apt or yum
@@ -276,8 +393,13 @@ install_iofogctl() {
 check_iofogctl() {
     {
         if [[ -z "$(command -v iofogctl)" ]]; then
-            install_iofogctl
-            return $?
+            echoError "iofogctl not found!"
+            if [[ "${VERIFY}" -eq 1 ]]; then
+                return 1
+            else
+                install_iofogctl
+                return $?
+            fi
         else
             echoSuccess "iofogctl found in path!"
             iofogctl version    
@@ -324,25 +446,30 @@ install_kubectl() {
 check_kubectl() {
     {
         if ! [[ -x "$(command -v kubectl)" ]]; then
-            if [[ "$OSTYPE" == "linux-gnu" ]]; then
-                install_kubectl "linux"
-            elif [[ "$OSTYPE" == "darwin"* ]]; then
-                # Mac OSX
-                install_kubectl "darwin"
-            elif [[ "$OSTYPE" == "cygwin" ]]; then
-                # POSIX compatibility layer and Linux environment emulation for Windows
-                install_kubectl "windows"
-            elif [[ "$OSTYPE" == "msys" ]]; then
-                # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
-                install_kubectl "windows"
-            elif [[ "$OSTYPE" == "win32" ]]; then
-                # I'm not sure this can happen.
-                install_kubectl "windows"
-            elif [[ "$OSTYPE" == "freebsd"* ]]; then
-                install_kubectl "linux"
+            echoError "Kubectl not found"
+            if [[ "${VERIFY}" -eq 1 ]]; then
+                return 1
             else
-                help_install_kubectl
-                false
+                if [[ "$OSTYPE" == "linux-gnu" ]]; then
+                    install_kubectl "linux"
+                elif [[ "$OSTYPE" == "darwin"* ]]; then
+                    # Mac OSX
+                    install_kubectl "darwin"
+                elif [[ "$OSTYPE" == "cygwin" ]]; then
+                    # POSIX compatibility layer and Linux environment emulation for Windows
+                    install_kubectl "windows"
+                elif [[ "$OSTYPE" == "msys" ]]; then
+                    # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
+                    install_kubectl "windows"
+                elif [[ "$OSTYPE" == "win32" ]]; then
+                    # I'm not sure this can happen.
+                    install_kubectl "windows"
+                elif [[ "$OSTYPE" == "freebsd"* ]]; then
+                    install_kubectl "linux"
+                else
+                    help_install_kubectl
+                    false
+                fi
             fi
         else
             echoSuccess "kubectl found in path!"
@@ -411,31 +538,35 @@ install_jq() {
 check_jq() {
     {
         if ! [[ -x "$(command -v jq)" ]]; then
-            if [[ "$OSTYPE" == "linux-gnu" ]]; then
-                install_jq "linux"
-            elif [[ "$OSTYPE" == "darwin"* ]]; then
-                # Mac OSX
-                install_jq "darwin"
-            elif [[ "$OSTYPE" == "cygwin" ]]; then
-                # POSIX compatibility layer and Linux environment emulation for Windows
-                install_jq "windows"
-            elif [[ "$OSTYPE" == "msys" ]]; then
-                # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
-                install_jq "windows"
-            elif [[ "$OSTYPE" == "win32" ]]; then
-                # I'm not sure this can happen.
-                install_jq "windows"
-            elif [[ "$OSTYPE" == "freebsd"* ]]; then
-                install_jq "linux"
-            else
-                help_install_jq
+            echoError "jq not found!"
+            if [[ "${VERIFY}" -eq 1 ]]; then
                 return 1
+            else
+                if [[ "$OSTYPE" == "linux-gnu" ]]; then
+                    install_jq "linux"
+                elif [[ "$OSTYPE" == "darwin"* ]]; then
+                    # Mac OSX
+                    install_jq "darwin"
+                elif [[ "$OSTYPE" == "cygwin" ]]; then
+                    # POSIX compatibility layer and Linux environment emulation for Windows
+                    install_jq "windows"
+                elif [[ "$OSTYPE" == "msys" ]]; then
+                    # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
+                    install_jq "windows"
+                elif [[ "$OSTYPE" == "win32" ]]; then
+                    # I'm not sure this can happen.
+                    install_jq "windows"
+                elif [[ "$OSTYPE" == "freebsd"* ]]; then
+                    install_jq "linux"
+                else
+                    help_install_jq
+                    return 1
+                fi
+                return $?
             fi
-            return $?
         else
             echoSuccess "jq found in path!"
-            jq --version    
-            echo ""
+            jq --version
             return 0
         fi
     } || {
@@ -444,15 +575,37 @@ check_jq() {
     }
 }
 
-display_gcp_final_instructions() {
+authenticate_gcp() {
+    if [[ "${NO_AUTH}" -eq 1 || "${VERIFY}" -eq 1 ]]; then return; fi
+
     prettyTitle "Gcloud authentication:"
-    gcloud auth login
+    if [[ -f "$GCLOUD_KEY_FILE" ]]; then
+        echo "Activating service account from file: ${GCLOUD_KEY_FILE}..."
+        gcloud auth activate-service-account --key-file "${GCLOUD_KEY_FILE}"
+    else
+        echo "Activating service account using interactive login..."
+        gcloud auth login
+    fi
+    echo
+}
+
+display_gcp_final_instructions() {
+    if ! [[ ${GCLOUD_INSTALLED} = true ]]; then return; fi
+
     prettyTitle "Next Steps"
     echo "Please run the following commands and add them in your shell profile file to make gcloud available in the PATH:"
-    echo "source $LIB_LOCATION/google-cloud-sdk/completion.bash.inc"
-    echo "source $LIB_LOCATION/google-cloud-sdk/path.bash.inc"
-    echo ""
-
+    if [[ -n "`$SHELL -c 'echo $ZSH_VERSION'`" ]]; then
+    # assume Zsh
+        echo "source $LIB_LOCATION/google-cloud-sdk/completion.zsh.inc"
+        echo "source $LIB_LOCATION/google-cloud-sdk/path.zsh.inc"
+    elif [[ -n "`$SHELL -c 'echo $FISH_VERSION'`" ]]; then
+    # assume Fish
+        echo "source $LIB_LOCATION/google-cloud-sdk/path.fish.inc"
+    else
+    # default to Bash
+        echo "source $LIB_LOCATION/google-cloud-sdk/completion.bash.inc"
+        echo "source $LIB_LOCATION/google-cloud-sdk/path.bash.inc"
+    fi
 }
 
 prettyHeader "Bootstrapping ioFog platform dependencies"
@@ -469,7 +622,10 @@ if [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "
 fi
 
 check_gcp
+authenticate_gcp
 gcp_success=$?
+check_go
+go_success=$?
 check_tf
 tf_success=$?
 check_kubectl
@@ -479,16 +635,16 @@ iofogctl_success=$?
 check_jq
 jq_success=$?
 
-if [[ $1 != "--verify " ]]; then
-    echoInfo "Setting up Terraform files..."
-    cp ./infrastructure/environments_gke/user/vars.template.tfvars ./my_vars.tfvars
-else
-    echo ""
-fi
-
 success=0
 echo ""
 prettyTitle "Bootstrap Summary:"
+if [[ $go_success -ne 0 ]]; then
+    echoError " ✖️ go" 
+    help_install_go
+    success=1
+else
+    echoSuccess " ✔️  go"
+fi
 if [[ $tf_success -ne 0 ]]; then
     echoError " ✖️ Terraform" 
     help_install_tf
